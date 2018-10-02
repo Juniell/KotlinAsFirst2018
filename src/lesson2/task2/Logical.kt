@@ -2,6 +2,7 @@
 package lesson2.task2
 
 import lesson1.task1.sqr
+import java.lang.Math.pow
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -44,8 +45,7 @@ fun daysInMonth(month: Int, year: Int): Int =
         when (month) {
             1, 3, 5, 7, 8, 10, 12 -> 31
             4, 6, 9, 11 -> 30
-            else ->
-                if (year % 4 != 0 || (year % 100 == 0 && year % 400 != 0)) 28 else 29
+            else -> if (year % 4 != 0 || (year % 100 == 0 && year % 400 != 0)) 28 else 29
         }
 
 /**
@@ -57,7 +57,7 @@ fun daysInMonth(month: Int, year: Int): Int =
  */
 fun circleInside(x1: Double, y1: Double, r1: Double,
                  x2: Double, y2: Double, r2: Double): Boolean =
-        ((sqr(x1 - x2)) + (sqr(y1 - y2)) <= sqr(r2)) && (sqrt(sqr(x2 - x1) + sqr(y2 - y1)) + r1 <= r2)
+        sqrt(pow(x2 - x1, 2.0) + pow(y2 - y1, 2.0)) + r1 <= r2
 
 /**
  * Средняя
@@ -68,5 +68,11 @@ fun circleInside(x1: Double, y1: Double, r1: Double,
  * кирпич 4 х 4 х 4 пройдёт через отверстие 4 х 4.
  * Вернуть true, если кирпич пройдёт
  */
-fun brickPasses(a: Int, b: Int, c: Int, r: Int, s: Int): Boolean = (a <= s && (b <= r || c <= r)) ||
-        (b <= s && (c <= r || a <= r)) || (c <= s && (a <= r || b <= r))
+fun brickPasses(a: Int, b: Int, c: Int, r: Int, s: Int): Boolean {
+    val max = maxOf(a, b, c)
+    val min = minOf(a, b, c)
+    val mid = a + b + c - max - min
+    val maxSide = maxOf(s, r)
+    val minSide = minOf(s, r)
+    return mid <= maxSide && min <= minSide
+}

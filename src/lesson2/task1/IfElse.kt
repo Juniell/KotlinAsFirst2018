@@ -112,13 +112,12 @@ fun whichRookThreatens(kingX: Int, kingY: Int,
                        rookX2: Int, rookY2: Int): Int {
     val rook1 = rookX1 == kingX || rookY1 == kingY
     val rook2 = rookX2 == kingX || rookY2 == kingY
-    return if (rook1 && rook2) 3
-    else
-        when {
-            rook1 -> 1
-            rook2 -> 2
-            else -> 0
-        }
+    return when {
+        rook1 && rook2 -> 3
+        rook1 -> 1
+        rook2 -> 2
+        else -> 0
+    }
 }
 
 /**
@@ -136,13 +135,12 @@ fun rookOrBishopThreatens(kingX: Int, kingY: Int,
                           bishopX: Int, bishopY: Int): Int {
     val rook = rookX == kingX || rookY == kingY
     val bishop = abs(bishopX - kingX) == abs(bishopY - kingY)
-    return if (rook && bishop) 3
-    else
-        when {
-            rook -> 1
-            bishop -> 2
-            else -> 0
-        }
+    return when {
+        rook && bishop -> 3
+        rook -> 1
+        bishop -> 2
+        else -> 0
+    }
 }
 
 /**
@@ -157,14 +155,14 @@ fun triangleKind(a: Double, b: Double, c: Double): Int {
     val min = minOf(a, b, c)
     val max = maxOf(a, b, c)
     val average = a + b + c - min - max
-    return if (min + average < max) -1 else {
-        when {
-            sqr(min) + sqr(average) == sqr(max) -> 1
-            sqr(min) + sqr(average) < sqr(max) -> 2
-            else -> 0
-        }
+    return when {
+        min + average < max -> -1
+        sqr(min) + sqr(average) == sqr(max) -> 1
+        sqr(min) + sqr(average) < sqr(max) -> 2
+        else -> 0
     }
 }
+
 
 
 
@@ -176,5 +174,6 @@ fun triangleKind(a: Double, b: Double, c: Double): Int {
  * Найти длину пересечения отрезков AB и CD.
  * Если пересечения нет, вернуть -1.
  */
-fun segmentLength(a: Int, b: Int, c: Int, d: Int): Int = if ((c <= b && a > d) || (c > b && a <= d)) -1
-else min(b, d) - max(a, c)
+fun segmentLength(a: Int, b: Int, c: Int, d: Int): Int =
+        if ((c <= b && a > d) || (c > b && a <= d)) -1
+        else min(b, d) - max(a, c)
