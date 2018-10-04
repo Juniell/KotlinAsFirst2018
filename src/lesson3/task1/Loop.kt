@@ -77,7 +77,7 @@ fun digitNumber(n: Int): Int {
     do {
         count++
         number /= 10
-    } while (number > 0)
+    } while (abs(number) > 0)
     return count
 }
 
@@ -223,7 +223,7 @@ fun sin(x: Double, eps: Double): Double {
     var result = a
     var j = 1.0
     var i = 1
-    while (abs(a) >= eps) {
+    while (abs(a) > eps) {
         a = pow(-1.0, j) * pow(x, (count + j)) / factorial(count + i)
         j += 1
         i += 1
@@ -246,7 +246,7 @@ fun cos(x: Double, eps: Double): Double {
     var result = 1.0
     var j = 1.0
     var i = 1
-    while (abs(a) >= eps) {
+    while (abs(a) > eps) {
         a = pow(-1.0, j) * pow(x, (count + j)) / factorial(count + i)
         j += 1
         i += 1
@@ -353,25 +353,18 @@ fun hasDifferentDigits(n: Int): Boolean {
  */
 fun squareSequenceDigit(n: Int): Int {
     var i = 0
-    var a: Int
+    var a = 1
     var count = 0.0
-    var c = 0.0
-    var sequence: Long = 0
-    while (count <= n) {
+    while (count < n) {
         i += 1
         a = i * i
         while (a > 0) {
-            c += 1
+            count += 1
             a /= 10
         }
         a = i * i
-        sequence = (sequence * pow(10.0, c) + a).toLong()
-        count += c
-        c = 0.0
-        if (sequence >= 100000000) sequence %= 1000000
     }
-    val result = ((sequence / (pow(10.0, (count - n)).toInt()) % 10)).toInt()
-    return result
+    return (a / (pow(10.0, (count - n)).toInt()) % 10)
 }
 
 /**
@@ -386,12 +379,12 @@ fun squareSequenceDigit(n: Int): Int {
 fun fibSequenceDigit(n: Int): Int {
     var i = 0
     var a: Int
-    var b = 0.0
-    var c = 1
+    var c: Int
     var number = 2
     var count = 0.0
-    var sequence: Long = 0
-    while (count <= n) {
+    while (count < n) {
+        number = 2
+        c = 1
         i += 1
         if (i <= 2) number = 1
         if (i == 3) number = 2
@@ -401,16 +394,9 @@ fun fibSequenceDigit(n: Int): Int {
         }
         a = number
         while (a > 0) {
-            b += 1
+            count += 1
             a /= 10
         }
-        sequence = (sequence * pow(10.0, b) + number).toLong()
-        count += b
-        b = 0.0
-        if (sequence >= 100000000) sequence %= 1000000
-        number = 2
-        c = 1
     }
-    val result = ((sequence / (pow(10.0, (count - n)).toInt()) % 10)).toInt()
-    return result
+    return (number / (pow(10.0, (count - n)).toInt()) % 10)
 }
