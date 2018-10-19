@@ -112,6 +112,7 @@ fun nod(m: Int, n: Int): Int {
         if (a > b) a -= b else b -= a
     return b
 }
+
 fun lcm(m: Int, n: Int): Int {
     var nok = n * m
     nok /= nod(m, n)
@@ -245,7 +246,8 @@ fun revert(n: Int): Int {
     var m = n % 10
     var x = n / 10
     var lenght = digitNumber(n) - 1
-    if (lenght == 1) return n
+    if (lenght == 1)
+        return n
     else {
         while (lenght > 0) {
             lenght -= 1
