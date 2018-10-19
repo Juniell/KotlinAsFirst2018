@@ -114,7 +114,6 @@ fun nod(m: Int, n: Int): Int {
 }
 fun lcm(m: Int, n: Int): Int {
     var nok = n * m
-
     nok /= nod(m, n)
     return nok
 }
@@ -124,15 +123,16 @@ fun lcm(m: Int, n: Int): Int {
  *
  * Для заданного числа n > 1 найти минимальный делитель, превышающий 1
  */
+
 fun minDivisor(n: Int): Int {
-    var minDivisor = 1
-    for (i in 2..n / 2) {
+    val minDivisor: Int
+    for (i in 2..sqrt(n.toDouble()).toInt()) {
         if (n % i == 0) {
             minDivisor = i
             return minDivisor
         }
     }
-    return if (isPrime(n)) n else minDivisor
+    return n
 }
 
 /**
@@ -140,16 +140,7 @@ fun minDivisor(n: Int): Int {
  *
  * Для заданного числа n > 1 найти максимальный делитель, меньший n
  */
-fun maxDivisor(n: Int): Int {
-    var maxDivisor = 1
-    for (i in (n / 2) downTo 2) {
-        if (n % i == 0) {
-            maxDivisor = i
-            return maxDivisor
-        }
-    }
-    return maxDivisor
-}
+fun maxDivisor(n: Int): Int = n / minDivisor(n)
 
 /**
  * Простая
@@ -213,14 +204,12 @@ fun collatzSteps(x: Int): Int {
 fun sin(x: Double, eps: Double): Double {
     val a = x % (2 * PI)
     var number = a
-    var count = 1
     var i = 1
     var result = a
     while (abs(number) >= eps) {
-        count++
         i += 2
-        number = (number * a * a) / (i * (i - 1))
-        if (count % 2 == 1) result += number else result -= number
+        number = -1 * (number * a * a) / (i * (i - 1))
+        result += number
     }
     return result
 }
@@ -235,14 +224,12 @@ fun sin(x: Double, eps: Double): Double {
 fun cos(x: Double, eps: Double): Double {
     val a = x % (2 * PI)
     var number = 1.0
-    var count = 1
     var i = 0
     var result = 1.0
     while (abs(number) >= eps) {
-        count++
         i += 2
-        number = (number * a * a) / (i * (i - 1))
-        if (count % 2 == 1) result += number else result -= number
+        number = -1 * (number * a * a) / (i * (i - 1))
+        result += number
     }
     return result
 }
@@ -254,23 +241,15 @@ fun cos(x: Double, eps: Double): Double {
  *
  * Использовать операции со строками в этой задаче запрещается.
  */
-fun length(n: Int): Int {
-    var count = 0
-    var x = n
-    do {
-        count += 1
-        x /= 10
-    } while (x > 0)
-    return count
-}
 fun revert(n: Int): Int {
-    var m = 0
-    var x = n
-    var lenght = length(n)
-    if (lenght == 1) return n else {
+    var m = n % 10
+    var x = n / 10
+    var lenght = digitNumber(n) - 1
+    if (lenght == 1) return n
+    else {
         while (lenght > 0) {
             lenght -= 1
-            m += (x % 10 * pow(10.0, lenght.toDouble())).toInt()
+            m = m * 10 + x % 10
             x /= 10
         }
     }
@@ -291,7 +270,7 @@ fun isPalindrome(n: Int): Boolean {
     var k2: Int
     var a: Double
     var x = n
-    val lenght = length(n)
+    val lenght = digitNumber(n)
     a = (lenght - 1).toDouble()
     for (i in 1..lenght / 2) {
         k1 = x / pow(10.0, a).toInt()
@@ -311,16 +290,7 @@ fun isPalindrome(n: Int): Boolean {
  *
  * Использовать операции со строками в этой задаче запрещается.
  */
-fun hasDifferentDigits(n: Int): Boolean {
-    var x: Int
-    var a = n
-    while (a > 10) {
-        x = a % 10
-        a /= 10
-        if (x != (a % 10)) return true
-    }
-    return (a > 9)
-}
+fun hasDifferentDigits(n: Int): Boolean = digitCountInNumber(n, n % 10) != digitNumber(n)
 
 
 /**
@@ -335,13 +305,13 @@ fun hasDifferentDigits(n: Int): Boolean {
 fun squareSequenceDigit(n: Int): Int {
     var i = 0
     var a = 1
-    var lenght = 0.0
+    var lenght = 0
     while (lenght < n) {
         i += 1
         a = i * i
-        lenght += length(a).toDouble()
+        lenght += digitNumber(a)
     }
-    return (a / (pow(10.0, (lenght - n)).toInt()) % 10)
+    return (a / (pow(10.0, (lenght - n).toDouble()).toInt()) % 10)
 }
 
 /**
@@ -355,12 +325,12 @@ fun squareSequenceDigit(n: Int): Int {
  */
 fun fibSequenceDigit(n: Int): Int {
     var i = 0
-    var lenght = 0.0
+    var lenght = 0
     var number = 2
     while (lenght < n) {
         i++
         number = fib(i)
-        lenght += length(number).toDouble()
+        lenght += digitNumber(number)
     }
-    return (number / (pow(10.0, (lenght - n)).toInt()) % 10)
+    return (number / (pow(10.0, (lenght - n).toDouble()).toInt()) % 10)
 }
