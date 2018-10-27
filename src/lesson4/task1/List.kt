@@ -121,14 +121,8 @@ fun buildSumExample(list: List<Int>) = list.joinToString(separator = " + ", post
  * Модуль пустого вектора считать равным 0.0.
  */
 fun abs(v: List<Double>): Double {
-    var result = 0.0
-    if (v.isNotEmpty()) {
-        for (element in v) {
-            result += pow(element, 2.0)
-        }
-        return sqrt(result)
-    }
-    return 0.0
+    val res = v.map { it * it }
+    return if (v.isNotEmpty()) sqrt(res.sum()) else 0.0
 }
 
 /**
@@ -148,11 +142,7 @@ fun mean(list: List<Double>): Double = if (list.isNotEmpty()) list.sum() / list.
  */
 fun center(list: MutableList<Double>): MutableList<Double> {
     val mean = mean(list)
-    if (list.isNotEmpty()) {
-        for (i in 0 until list.size) {
-            list[i] = list[i] - mean
-        }
-    }
+    if (list.isNotEmpty()) list.replaceAll { it - mean }
     return list
 }
 
@@ -173,6 +163,7 @@ fun times(a: List<Double>, b: List<Double>): Double {
     return result
 }
 
+
 /**
  * Средняя
  *
@@ -182,13 +173,10 @@ fun times(a: List<Double>, b: List<Double>): Double {
  * Значение пустого многочлена равно 0.0 при любом x.
  */
 fun polynom(p: List<Double>, x: Double): Double {
-    var result = 0.0
-    if (p.isNotEmpty()) {
-        for (i in 0 until p.size) {
-            result += p[i] * pow(x, i.toDouble())
-        }
+    val res = p.toMutableList().mapIndexed { index, a ->
+        a * pow(x, index.toDouble())
     }
-    return result
+    return if (p.isNotEmpty()) res.sum() else 0.0
 }
 
 /**
@@ -260,6 +248,7 @@ fun factorizeToString(n: Int): String = factorize(n).joinToString(separator = "*
 fun convert(n: Int, base: Int): List<Int> {
     val list = mutableListOf<Int>()
     var x = n
+    if (n == 0) list.add(n)
     while (x > 0) {
         list.add(x % base)
         x /= base
@@ -475,6 +464,7 @@ fun hundred(a: Int): String {
     }
     return str
 }
+
 fun ten(a: Int): String {
     var str = ""
     when (a) {
@@ -490,6 +480,7 @@ fun ten(a: Int): String {
     }
     return str
 }
+
 fun twenty(a: Int): String {
     var str = ""
     when (a) {
@@ -506,6 +497,7 @@ fun twenty(a: Int): String {
     }
     return str
 }
+
 fun russian(n: Int): String {
     var string = ""
     var x: Int
