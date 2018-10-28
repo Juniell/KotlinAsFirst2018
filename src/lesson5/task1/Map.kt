@@ -139,11 +139,11 @@ fun buildGrades(grades: Map<String, Int>): Map<Int, List<String>> {
         if (grad == 5) grad5.add(name)
     }
     var result = mapOf(
-            5 to grad5.toList().sorted(),
-            4 to grad4.toList().sorted(),
-            3 to grad3.toList().sorted(),
-            2 to grad2.toList().sorted(),
-            1 to grad1.toList().sorted()
+            5 to grad5.toList().sortedDescending(),
+            4 to grad4.toList().sortedDescending(),
+            3 to grad3.toList().sortedDescending(),
+            2 to grad2.toList().sortedDescending(),
+            1 to grad1.toList().sortedDescending()
     )
     if (grad5.isEmpty()) result -= 5
     if (grad4.isEmpty()) result -= 4
@@ -281,9 +281,9 @@ fun subtractOf(a: MutableMap<String, String>, b: Map<String, String>): Unit {
  */
 fun whoAreInBoth(a: List<String>, b: List<String>): List<String> {
     val res = mutableListOf<String>()
-    for (i in 0 until a.size) {
-        for (k in 0 until b.size) {
-            if (a[i] == b[k]) res.add(a[i])
+    for (i in 0 until b.size) {
+        for (k in 0 until a.size) {
+            if (b[i] == a[k]) res.add(b[i])
         }
     }
     return res
@@ -303,7 +303,7 @@ fun canBuildFrom(chars: List<Char>, word: String): Boolean {
     for (i in 0 until c.size) {
         if (c[i] !in chars) return false
     }
-    return chars.isNotEmpty()
+    return chars.isEmpty() && word == "" || chars.isNotEmpty()
 }
 
 /**
