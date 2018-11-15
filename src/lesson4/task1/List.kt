@@ -7,7 +7,9 @@ import lesson1.task1.sqr
 import lesson3.task1.isPrime
 import java.io.File.separator
 import java.lang.Math.pow
+import java.lang.StringBuilder
 import java.math.BigInteger
+import javax.xml.crypto.dom.DOMCryptoContext
 import kotlin.math.sqrt
 
 /**
@@ -120,10 +122,7 @@ fun buildSumExample(list: List<Int>) = list.joinToString(separator = " + ", post
  * по формуле abs = sqrt(a1^2 + a2^2 + ... + aN^2).
  * Модуль пустого вектора считать равным 0.0.
  */
-fun abs(v: List<Double>): Double {
-    val res = v.map { it * it }
-    return if (v.isNotEmpty()) sqrt(res.sum()) else 0.0
-}
+fun abs(v: List<Double>): Double = sqrt(v.map { it * it }.sum())
 
 /**
  * Простая
@@ -142,7 +141,7 @@ fun mean(list: List<Double>): Double = if (list.isNotEmpty()) list.sum() / list.
  */
 fun center(list: MutableList<Double>): MutableList<Double> {
     val mean = mean(list)
-    if (list.isNotEmpty()) list.replaceAll { it - mean }
+    list.replaceAll { it - mean }
     return list
 }
 
@@ -153,16 +152,7 @@ fun center(list: MutableList<Double>): MutableList<Double> {
  * представленные в виде списков a и b. Скалярное произведение считать по формуле:
  * C = a1b1 + a2b2 + ... + aNbN. Произведение пустых векторов считать равным 0.0.
  */
-fun times(a: List<Double>, b: List<Double>): Double {
-    var result = 0.0
-    if (a.isNotEmpty() && b.isNotEmpty()) {
-        for (i in 0 until a.size) {
-            result += a[i] * b[i]
-        }
-    }
-    return result
-}
-
+fun times(a: List<Double>, b: List<Double>): Double = a.zip(b).map { it.first * it.second }.sum()
 
 /**
  * Средняя
@@ -172,12 +162,9 @@ fun times(a: List<Double>, b: List<Double>): Double {
  * Коэффициенты многочлена заданы списком p: (p0, p1, p2, p3, ..., pN).
  * Значение пустого многочлена равно 0.0 при любом x.
  */
-fun polynom(p: List<Double>, x: Double): Double {
-    val res = p.toMutableList().mapIndexed { index, a ->
-        a * pow(x, index.toDouble())
-    }
-    return if (p.isNotEmpty()) res.sum() else 0.0
-}
+fun polynom(p: List<Double>, x: Double): Double = p.toMutableList().mapIndexed { index, a ->
+    a * pow(x, index.toDouble())
+}.sum()
 
 /**
  * Средняя
@@ -253,14 +240,7 @@ fun convert(n: Int, base: Int): List<Int> {
         list.add(x % base)
         x /= base
     }
-    var b: Int
-    val c = list.size - 1
-    for (i in 0..(c / 2)) {
-        b = list[i]
-        list[i] = list[c - i]
-        list[c - i] = b
-    }
-    return list
+    return list.reversed()
 }
 
 /**
@@ -269,49 +249,23 @@ fun convert(n: Int, base: Int): List<Int> {
  * Перевести заданное целое число n >= 0 в систему счисления с основанием 1 < base < 37.
  * Результат перевода вернуть в виде строки, цифры более 9 представлять латинскими
  * строчными буквами: 10 -> a, 11 -> b, 12 -> c и так далее.
+ * строчными буквами: 10 -> a, 11 -> b, 12 -> c и так далее.
  * Например: n = 100, base = 4 -> 1210, n = 250, base = 14 -> 13c
  */
 fun convertToString(n: Int, base: Int): String {
     val list = convert(n, base)
     var b: Int
     val c = list.size - 1
-    var string = ""
+    val string = StringBuilder()
     for (i in 0..c) {
         b = list[i]
         if (list[i] < 10)
-            string += b
+            string.append(b)
         else {
-            when (list[i]) {
-                10 -> string += 'a'
-                11 -> string += 'b'
-                12 -> string += 'c'
-                13 -> string += 'd'
-                14 -> string += 'e'
-                15 -> string += 'f'
-                16 -> string += 'g'
-                17 -> string += 'h'
-                18 -> string += 'i'
-                19 -> string += 'j'
-                20 -> string += 'k'
-                21 -> string += 'l'
-                22 -> string += 'm'
-                23 -> string += 'n'
-                24 -> string += 'o'
-                25 -> string += 'p'
-                26 -> string += 'q'
-                27 -> string += 'r'
-                28 -> string += 's'
-                29 -> string += 't'
-                30 -> string += 'u'
-                31 -> string += 'v'
-                32 -> string += 'w'
-                33 -> string += 'x'
-                34 -> string += 'y'
-                35 -> string += 'z'
-            }
+            string.append((87 + b).toChar())
         }
     }
-    return string
+    return string.toString()
 }
 
 /**
@@ -341,43 +295,11 @@ fun decimal(digits: List<Int>, base: Int): Int {
 fun decimalFromString(str: String, base: Int): Int {
     val list = mutableListOf<Int>()
     for (i in 0 until str.length) {
-        when (str[i]) {
-            '0' -> list.add(0)
-            '1' -> list.add(1)
-            '2' -> list.add(2)
-            '3' -> list.add(3)
-            '4' -> list.add(4)
-            '5' -> list.add(5)
-            '6' -> list.add(6)
-            '7' -> list.add(7)
-            '8' -> list.add(8)
-            '9' -> list.add(9)
-            'a' -> list.add(10)
-            'b' -> list.add(11)
-            'c' -> list.add(12)
-            'd' -> list.add(13)
-            'e' -> list.add(14)
-            'f' -> list.add(15)
-            'g' -> list.add(16)
-            'h' -> list.add(17)
-            'i' -> list.add(18)
-            'j' -> list.add(19)
-            'k' -> list.add(20)
-            'l' -> list.add(21)
-            'm' -> list.add(22)
-            'n' -> list.add(23)
-            'o' -> list.add(24)
-            'p' -> list.add(25)
-            'q' -> list.add(26)
-            'r' -> list.add(27)
-            's' -> list.add(28)
-            't' -> list.add(29)
-            'u' -> list.add(30)
-            'v' -> list.add(31)
-            'w' -> list.add(32)
-            'x' -> list.add(33)
-            'y' -> list.add(34)
-            'z' -> list.add(35)
+        val a = str[i].toInt()
+        if (a < 97) {
+            list.add(a - 48)
+        } else {
+            list.add(a - 87)
         }
     }
     return decimal(list, base)
@@ -449,54 +371,46 @@ fun roman(n: Int): String {
  * Например, 375 = "триста семьдесят пять",
  * 23964 = "двадцать три тысячи девятьсот шестьдесят четыре"
  */
-fun hundred(a: Int): String {
-    var str = ""
-    when (a) {
-        1 -> str += "сто "
-        2 -> str += "двести "
-        3 -> str += "триста "
-        4 -> str += "четыреста "
-        5 -> str += "пятьсот "
-        6 -> str += "шестьсот "
-        7 -> str += "семьсот "
-        8 -> str += "восемьсот "
-        9 -> str += "девятьсот "
-    }
-    return str
+fun hundred(a: Int): String = when (a) {
+    1 -> "сто "
+    2 -> "двести "
+    3 -> "триста "
+    4 -> "четыреста "
+    5 -> "пятьсот "
+    6 -> "шестьсот "
+    7 -> "семьсот "
+    8 -> "восемьсот "
+    9 -> "девятьсот "
+    else -> ""
 }
 
-fun ten(a: Int): String {
-    var str = ""
-    when (a) {
-        1 -> str += "десять "
-        2 -> str += "двадцать "
-        3 -> str += "тридцать "
-        4 -> str += "сорок "
-        5 -> str += "пятьдесят "
-        6 -> str += "шестьдесят "
-        7 -> str += "семьдесят "
-        8 -> str += "восемьдесят "
-        9 -> str += "девяносто "
-    }
-    return str
+fun ten(a: Int): String = when (a) {
+    1 -> "десять "
+    2 -> "двадцать "
+    3 -> "тридцать "
+    4 -> "сорок "
+    5 -> "пятьдесят "
+    6 -> "шестьдесят "
+    7 -> "семьдесят "
+    8 -> "восемьдесят "
+    9 -> "девяносто "
+    else -> ""
 }
 
-fun twenty(a: Int): String {
-    var str = ""
-    when (a) {
-        10 -> str += "десять "
-        11 -> str += "одиннадцать "
-        12 -> str += "двенадцать "
-        13 -> str += "тринадцать "
-        14 -> str += "четырнадцать "
-        15 -> str += "пятнадцать "
-        16 -> str += "шестнадцать "
-        17 -> str += "семнадцать "
-        18 -> str += "восемнадцать "
-        19 -> str += "девятнадцать "
-    }
-    return str
+fun twenty(a: Int): String = when (a) {
+    10 -> "десять "
+    11 -> "одиннадцать "
+    12 -> "двенадцать "
+    13 -> "тринадцать "
+    14 -> "четырнадцать "
+    15 -> "пятнадцать "
+    16 -> "шестнадцать "
+    17 -> "семнадцать "
+    18 -> "восемнадцать "
+    19 -> "девятнадцать "
+    else -> ""
 }
+
 
 fun russian(n: Int): String {
     var string = ""

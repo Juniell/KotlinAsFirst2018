@@ -96,15 +96,13 @@ fun buildWordSet(text: List<String>): MutableSet<String> {
  */
 fun mergePhoneBooks(mapA: Map<String, String>, mapB: Map<String, String>): Map<String, String> {
     val result = mutableMapOf<String, String>()
-    var string: String
     for ((name, phone) in mapA) {
         when {
             name in mapA && name in mapB && mapA[name] != mapB[name] -> {
-                string = mapA[name] + ", " + mapB[name]
-                result[name] = string
+                result[name] = mapA[name] + ", " + mapB[name]
             }
             name in mapA && name !in mapB -> result[name] = phone
-            name in mapA && name in mapB && mapA[name] != mapB[name] -> result[name] = phone
+
         }
     }
     for ((name, phone) in mapB) {
@@ -126,31 +124,15 @@ fun mergePhoneBooks(mapA: Map<String, String>, mapB: Map<String, String>): Map<S
  *     -> mapOf(5 to listOf("Семён", "Михаил"), 3 to listOf("Марат"))
  */
 fun buildGrades(grades: Map<String, Int>): Map<Int, List<String>> {
-    val grad5 = mutableListOf<String>()
-    val grad4 = mutableListOf<String>()
-    val grad3 = mutableListOf<String>()
-    val grad2 = mutableListOf<String>()
-    val grad1 = mutableListOf<String>()
-    for ((name, grad) in grades) {
-        if (grad == 1) grad1.add(name)
-        if (grad == 2) grad2.add(name)
-        if (grad == 3) grad3.add(name)
-        if (grad == 4) grad4.add(name)
-        if (grad == 5) grad5.add(name)
+    val result = mutableMapOf<Int, List<String>>()
+    for ((name, grade) in grades) {
+        if (grade !in result) {
+            val list = listOf<String>()
+            result[grade] = list + name
+        } else
+            result[grade] = (result[grade]!! + name).sortedDescending()
     }
-    var result = mapOf(
-            5 to grad5.toList().sortedDescending(),
-            4 to grad4.toList().sortedDescending(),
-            3 to grad3.toList().sortedDescending(),
-            2 to grad2.toList().sortedDescending(),
-            1 to grad1.toList().sortedDescending()
-    )
-    if (grad5.isEmpty()) result -= 5
-    if (grad4.isEmpty()) result -= 4
-    if (grad3.isEmpty()) result -= 3
-    if (grad2.isEmpty()) result -= 2
-    if (grad1.isEmpty()) result -= 1
-    return result
+    return result.toMap()
 }
 
 /**
@@ -163,11 +145,8 @@ fun buildGrades(grades: Map<String, Int>): Map<Int, List<String>> {
  *   containsIn(mapOf("a" to "z"), mapOf("a" to "z", "b" to "sweet")) -> true
  *   containsIn(mapOf("a" to "z"), mapOf("a" to "zee", "b" to "sweet")) -> false
  */
-fun containsIn(a: Map<String, String>, b: Map<String, String>): Boolean {
-    for ((key, value) in a) {
-        if (key !in b || b[key] != value) return false
-    }
-    return true
+fun containsIn(a: Map<String, String>, b: Map<String, String>): Boolean = a.all { (key, value) ->
+    (b[key] == value)
 }
 
 /**
@@ -181,23 +160,18 @@ fun containsIn(a: Map<String, String>, b: Map<String, String>): Boolean {
  *     -> mapOf("MSFT" to 150.0, "NFLX" to 40.0)
  */
 fun averageStockPrice(stockPrices: List<Pair<String, Double>>): Map<String, Double> {
-    val map = mutableMapOf<String, Double>()
-    for ((stock, _) in stockPrices) {
-        if (stock !in map) {
-            val name = stock
-            var costs = 0.0
-            var count = 0.0
-            for ((stock, price) in stockPrices) {
-                if (stock == name) {
-                    count++
-                    costs += price
-                }
-            }
-            map += stock to (costs / count)
+    val res = mutableMapOf<String, Double>()
+    val map = mutableMapOf<String, MutableList<Double>>()
+    for ((stock, price) in stockPrices) {
+        if (stock !in map)
+            map += stock to mutableListOf(price)
+        else
+            map[stock]!!.add(price)
+        for ((key, value) in map) {
+            res += key to (value.sum() / value.size)
         }
     }
-
-    return map
+    return res
 }
 
 /**
@@ -254,6 +228,7 @@ fun findCheapestStuff(stuff: Map<String, Pair<String, Double>>, kind: String): S
  *        )
  */
 fun propagateHandshakes(friends: Map<String, Set<String>>): Map<String, Set<String>> = TODO()
+
 /**
  * Простая
  *
@@ -270,7 +245,7 @@ fun propagateHandshakes(friends: Map<String, Set<String>>): Map<String, Set<Stri
  */
 fun subtractOf(a: MutableMap<String, String>, b: Map<String, String>): Unit {
     for ((key, value) in b) {
-        if (key in a && a[key] == value) a.remove(key)
+        if (a[key] == value) a.remove(key)
     }
 }
 
@@ -279,15 +254,7 @@ fun subtractOf(a: MutableMap<String, String>, b: Map<String, String>): Unit {
  *
  * Для двух списков людей найти людей, встречающихся в обоих списках
  */
-fun whoAreInBoth(a: List<String>, b: List<String>): List<String> {
-    val res = mutableListOf<String>()
-    for (i in 0 until b.size) {
-        for (k in 0 until a.size) {
-            if (b[i] == a[k]) res.add(b[i])
-        }
-    }
-    return res
-}
+fun whoAreInBoth(a: List<String>, b: List<String>): List<String> = a.intersect(b).toList()
 
 /**
  * Средняя
@@ -321,11 +288,9 @@ fun canBuildFrom(chars: List<Char>, word: String): Boolean {
 fun extractRepeats(list: List<String>): Map<String, Int> {
     var result = mapOf<String, Int>()
     var count = 0
-    var char: String
-    for (i in 0 until list.size) {
-        char = list[i]
-        for (k in 0 until list.size) {
-            if (list[k] == char) {
+    for (char in list) {
+        for (symbol in list) {
+            if (symbol == char) {
                 count++
             }
         }
@@ -344,19 +309,14 @@ fun extractRepeats(list: List<String>): Map<String, Int> {
  * Например:
  *   hasAnagrams(listOf("тор", "свет", "рот")) -> true
  */
-fun letter(a: String): List<String> {
-    val result = mutableListOf<String>()
-    for (i in 0 until a.length) {
-        result.add(a[i].toString())
-    }
-    return result
-}
+fun letter(a: String): List<Char> = a.toList()
+
 fun hasAnagrams(words: List<String>): Boolean {
-    for (i in 0 until words.size) {
-        val char = letter(words[i]).sorted()
-        for (k in 0 until words.size) {
-            if (char == letter(words[k]).sorted() && i != k) return true
-        }
+    val begin = words.map { letter(it).sorted() }
+    val compare = mutableListOf(begin[0])
+    for (i in 1 until begin.size) {
+        if (begin[i] in compare) return true
+        compare.add(begin[i])
     }
     return false
 }
