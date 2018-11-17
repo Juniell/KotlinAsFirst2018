@@ -254,16 +254,12 @@ fun convert(n: Int, base: Int): List<Int> {
  */
 fun convertToString(n: Int, base: Int): String {
     val list = convert(n, base)
-    var b: Int
-    val c = list.size - 1
     val string = StringBuilder()
-    for (i in 0..c) {
-        b = list[i]
-        if (list[i] < 10)
-            string.append(b)
-        else {
-            string.append((87 + b).toChar())
-        }
+    for (element in list) {
+        if (element < 10)
+            string.append(element)
+        else
+            string.append((87 + element).toChar())
     }
     return string.toString()
 }
@@ -294,13 +290,11 @@ fun decimal(digits: List<Int>, base: Int): Int {
  */
 fun decimalFromString(str: String, base: Int): Int {
     val list = mutableListOf<Int>()
-    for (i in 0 until str.length) {
-        val a = str[i].toInt()
-        if (a < 97) {
-            list.add(a - 48)
-        } else {
-            list.add(a - 87)
-        }
+    for (element in str) {
+        if (element.toInt() < 97)
+            list.add(element.toInt() - 48)
+        else
+            list.add(element.toInt() - 87)
     }
     return decimal(list, base)
 }
