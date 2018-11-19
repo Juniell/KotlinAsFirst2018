@@ -190,14 +190,12 @@ fun findCheapestStuff(stuff: Map<String, Pair<String, Double>>, kind: String): S
     var min = Double.POSITIVE_INFINITY
     var result = ""
     for ((name, pair) in stuff) {
-        if (kind == pair.first) {
-            if (min >= pair.second) {
-                min = pair.second
-                result = name
-            }
+        if (kind == pair.first && min >= pair.second) {
+            min = pair.second
+            result = name
         }
     }
-    return if (min != Double.POSITIVE_INFINITY && kind != "") result else null
+return if (min != Double.POSITIVE_INFINITY) result else null
 }
 
 /**
@@ -401,4 +399,32 @@ fun findSumOfTwo(list: List<Int>, number: Int): Pair<Int, Int> {
  *     450
  *   ) -> emptySet()
  */
-fun bagPacking(treasures: Map<String, Pair<Int, Int>>, capacity: Int): Set<String> = TODO()
+fun bagPacking(treasures: Map<String, Pair<Int, Int>>, capacity: Int): Set<String> {
+    val res = mutableSetOf<String>()                           // Вводим map, в который будем вносить результат
+    var weight = capacity
+    var size = capacity
+    var name = ""
+    var ratio = 0                                              // Переменная, в которую записывается отношение цена/вес
+    val map = treasures.toMutableMap()
+    while (map.isNotEmpty()) {
+        for ((item, property) in treasures) {                  // Сразу убираем предметы, вес которых больше
+            if (property.first > size)                         // вместимости рюкзака
+                map -= item
+        }
+        if (map.isEmpty())                                     // Если после предыдущего цикла map с предметам стал
+            return res                                         // пустым, то сразувыводим результат
+        for ((item, property) in map) {                        // Из оставшихся предметов ищем самый
+            if (property.second / property.first > ratio) {    // ценный (рублей/грамм)
+                weight = property.first                        // и запоминаем его характеристики и имя
+                name = item
+                ratio = property.second / property.first
+            }
+        }
+        res.add(name)                                          // Добавляем имя предмета в результат
+        map -= name
+        size -= weight
+        weight = size
+        ratio = 0
+    }
+    return res
+}

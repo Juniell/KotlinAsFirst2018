@@ -2,6 +2,9 @@
 
 package lesson6.task1
 
+import lesson2.task2.daysInMonth
+import lesson4.task1.ten
+
 /**
  * Пример
  *
@@ -49,12 +52,10 @@ fun main(args: Array<String>) {
         val seconds = timeStrToSeconds(line)
         if (seconds == -1) {
             println("Введённая строка $line не соответствует формату ЧЧ:ММ:СС")
-        }
-        else {
+        } else {
             println("Прошло секунд с начала суток: $seconds")
         }
-    }
-    else {
+    } else {
         println("Достигнут <конец файла> в процессе чтения строки. Программа прервана")
     }
 }
@@ -71,7 +72,36 @@ fun main(args: Array<String>) {
  * Обратите внимание: некорректная с точки зрения календаря дата (например, 30.02.2009) считается неверными
  * входными данными.
  */
-fun dateStrToDigit(str: String): String = TODO()
+fun dateStrToDigit(str: String): String {
+    val parts = str.split(" ")
+    if (parts.size != 3) return ""
+    val days: Int
+    val month: Int
+    val yaer: Int
+    try {
+        days = parts[0].toInt()
+        month = when (parts[1]) {
+            "января" -> 1
+            "февраля" -> 2
+            "марта" -> 3
+            "апреля" -> 4
+            "мая" -> 5
+            "июня" -> 6
+            "июля" -> 7
+            "августа" -> 8
+            "сентября" -> 9
+            "октября" -> 10
+            "ноября" -> 11
+            "декабря" -> 12
+            else -> return ""
+        }
+        yaer = parts[2].toInt()
+        if (days > daysInMonth(month, yaer)) return ""
+    } catch (e: NumberFormatException) {
+        return ""
+    }
+    return String.format("%02d.%02d.%d", days, month, yaer)
+}
 
 /**
  * Средняя
@@ -83,7 +113,36 @@ fun dateStrToDigit(str: String): String = TODO()
  * Обратите внимание: некорректная с точки зрения календаря дата (например, 30 февраля 2009) считается неверными
  * входными данными.
  */
-fun dateDigitToStr(digital: String): String = TODO()
+fun dateDigitToStr(digital: String): String {
+    val parts = digital.split(".")
+    if (parts.size != 3) return ""
+    val days: Int
+    val month: String
+    val yaer: Int
+    try {
+        days = parts[0].toInt()
+        month = when (parts[1].toInt()) {
+            1 -> "января"
+            2 -> "февраля"
+            3 -> "марта"
+            4 -> "апреля"
+            5 -> "мая"
+            6 -> "июня"
+            7 -> "июля"
+            8 -> "августа"
+            9 -> "сентября"
+            10 -> "октября"
+            11 -> "ноября"
+            12 -> "декабря"
+            else -> return ""
+        }
+        yaer = parts[2].toInt()
+        if (days > daysInMonth(parts[1].toInt(), yaer)) return ""
+    } catch (e: NumberFormatException) {
+        return ""
+    }
+    return String.format("%d %s %d", days, month, yaer)
+}
 
 /**
  * Средняя
@@ -97,7 +156,8 @@ fun dateDigitToStr(digital: String): String = TODO()
  * Все символы в номере, кроме цифр, пробелов и +-(), считать недопустимыми.
  * При неверном формате вернуть пустую строку
  */
-fun flattenPhoneNumber(phone: String): String = TODO()
+fun flattenPhoneNumber(phone: String): String = if (Regex("""[^0-9()+\s\-]|(?<!^)\+""") in phone) ""
+else Regex("""-|\s|\(|\)""").replace(phone, "")
 
 /**
  * Средняя
@@ -109,7 +169,18 @@ fun flattenPhoneNumber(phone: String): String = TODO()
  * Прочитать строку и вернуть максимальное присутствующее в ней число (717 в примере).
  * При нарушении формата входной строки или при отсутствии в ней чисел, вернуть -1.
  */
-fun bestLongJump(jumps: String): Int = TODO()
+fun bestLongJump(jumps: String): Int {
+    if (Regex("""[^0-9%\-\s]""") in jumps) return -1
+    var str = Regex("""%|-|\s""").replace(jumps, ".")
+    str = Regex("""\.+\.+?""").replace(str, ".")
+    if (str == ".") return -1
+    val parts = str.split(".")
+    var max = parts[0].toInt()
+    for (part in parts) {
+        if (part.toInt() > max) max = part.toInt()
+    }
+    return max
+}
 
 /**
  * Сложная
@@ -121,7 +192,17 @@ fun bestLongJump(jumps: String): Int = TODO()
  * Прочитать строку и вернуть максимальную взятую высоту (230 в примере).
  * При нарушении формата входной строки вернуть -1.
  */
-fun bestHighJump(jumps: String): Int = TODO()
+fun bestHighJump(jumps: String): Int {
+    if (Regex("""[^0-9%+\-\s]|-+\d""") in jumps || Regex("""\+""") !in jumps) return -1
+    var str = Regex("""%|-|\s""").replace(jumps, ".")
+    str = Regex("""\.+\.+?""").replace(str, ".")
+    val parts = str.split(".")
+    var max = -1
+    for (i in 1 until parts.size) {
+        if (parts[i] == "+" && parts[i - 1].toInt() > max) max = parts[i - 1].toInt()
+    }
+    return max
+}
 
 /**
  * Сложная
@@ -132,7 +213,18 @@ fun bestHighJump(jumps: String): Int = TODO()
  * Вернуть значение выражения (6 для примера).
  * Про нарушении формата входной строки бросить исключение IllegalArgumentException
  */
-fun plusMinus(expression: String): Int = TODO()
+fun plusMinus(expression: String): Int {
+    if (Regex("""[^0-9+\-\s]""") in expression ||
+            Regex("""^\+|^-|(\s+\s+\s+?)|([-+])+\s+(\s+?)+([-+])|\d+[-+]|[-+]+\d|\d+\s+(\s+?)\d""") in expression)
+        throw IllegalArgumentException()
+    val parts = expression.split(" ")
+    var result = parts[0].toInt()
+    for (i in 1..(parts.size - 2)) {
+        if (parts[i] == "+") result += parts[i + 1].toInt()
+        if (parts[i] == "-") result -= parts[i + 1].toInt()
+    }
+    return result
+}
 
 /**
  * Сложная
@@ -143,7 +235,21 @@ fun plusMinus(expression: String): Int = TODO()
  * Вернуть индекс начала первого повторяющегося слова, или -1, если повторов нет.
  * Пример: "Он пошёл в в школу" => результат 9 (индекс первого 'в')
  */
-fun firstDuplicateIndex(str: String): Int = TODO()
+fun firstDuplicateIndex(str: String): Int {
+    val parts = str.toLowerCase().split(" ")
+    var ind = 0
+    var res = -1
+    for (i in 0 until parts.size - 1) {
+        if (i > 0) ind += parts[i - 1].length + 1
+        for (k in i + 1 until parts.size) {
+            if (parts[i] == parts[k]) {
+                res = ind
+                break
+            }
+        }
+    }
+    return res
+}
 
 /**
  * Сложная
@@ -156,7 +262,20 @@ fun firstDuplicateIndex(str: String): Int = TODO()
  * или пустую строку при нарушении формата строки.
  * Все цены должны быть больше либо равны нуля.
  */
-fun mostExpensive(description: String): String = TODO()
+fun mostExpensive(description: String): String {
+    if (Regex("""[^а-яёА-ЯЁ;.\d\s]""") in description || description == "") return ""
+    val parts = description.split("; ")
+    var max = 0.0
+    var word = ""
+    for (part in parts) {
+        val pair = part.split(" ")
+        if (pair[1].toDouble() > max) {
+            max = pair[1].toDouble()
+            word = pair[0]
+        }
+    }
+    return word
+}
 
 /**
  * Сложная
@@ -169,7 +288,40 @@ fun mostExpensive(description: String): String = TODO()
  *
  * Вернуть -1, если roman не является корректным римским числом
  */
-fun fromRoman(roman: String): Int = TODO()
+fun fromRoman(roman: String): Int {
+    if (Regex("""[^IVXLCDM]""") in roman || roman == "") return -1
+    val units = listOf("I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX")
+    val tens = listOf("X", "XX", "XXX", "XL", "L", "LX", "LXX", "LXXX", "XC")
+    val hundred = listOf("C", "CC", "CCC", "CD", "D", "DC", "DCC", "DCCC", "CM")
+    val thousand = listOf("M", "MM", "MMM")
+    var str = roman
+    var result = 0
+    for (i in 2 downTo 0) {
+        if (Regex("""^${thousand[i]}""") in str) {
+            str = Regex("""^${thousand[i]}""").replace(str, "")
+            result += (i + 1) * 1000
+        }
+    }
+    for (i in 8 downTo 0) {
+        if (Regex("""^${hundred[i]}""") in str) {
+            str = Regex("""^${hundred[i]}""").replace(str, "")
+            result += (i + 1) * 100
+        }
+    }
+    for (i in 8 downTo 0) {
+        if (Regex("""^${tens[i]}""") in str) {
+            str = Regex("""^${tens[i]}""").replace(str, "")
+            result += (i + 1) * 10
+        }
+    }
+    for (i in 8 downTo 0) {
+        if (Regex("""^${units[i]}""") in str) {
+            str = Regex("""^${units[i]}""").replace(str, "")
+            result += i + 1
+        }
+    }
+    return result
+}
 
 /**
  * Очень сложная
