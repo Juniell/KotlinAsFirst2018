@@ -172,9 +172,9 @@ else Regex("""-|\s|\(|\)""").replace(phone, "")
 fun bestLongJump(jumps: String): Int {
     if (Regex("""[^0-9%\-\s]""") in jumps) return -1
     var str = Regex("""%|-|\s""").replace(jumps, ".")
-    str = Regex("""\.+\.+?""").replace(str, ".")
-    if (str == ".") return -1
-    val parts = str.split(".")
+    str = Regex("""\.+\.+?""").replace(str, " ").trim()
+    if (str == "") return -1
+    val parts = str.split(Regex("""[ .]"""))
     var max = parts[0].toInt()
     for (part in parts) {
         if (part.toInt() > max) max = part.toInt()
@@ -214,9 +214,9 @@ fun bestHighJump(jumps: String): Int {
  * Про нарушении формата входной строки бросить исключение IllegalArgumentException
  */
 fun plusMinus(expression: String): Int {
-    if (Regex("""[^0-9+\-\s]""") in expression ||
+    if (Regex("""[^0-9+\-\s]""") in expression || expression.isEmpty() ||
             Regex("""^\+|^-|(\s+\s+\s+?)|([-+])+\s+(\s+?)+([-+])|\d+[-+]|[-+]+\d|\d+\s+(\s+?)\d""") in expression)
-        throw IllegalArgumentException()
+        throw IllegalArgumentException("java.lang.NumberFormatException: Only signed numbers are allowed")
     val parts = expression.split(" ")
     var result = parts[0].toInt()
     for (i in 1..(parts.size - 2)) {
@@ -250,6 +250,7 @@ fun firstDuplicateIndex(str: String): Int {
     }
     return res
 }
+// Либо локальне
 
 /**
  * Сложная
@@ -266,15 +267,23 @@ fun mostExpensive(description: String): String {
     if (Regex("""[^а-яёА-ЯЁ;.\d\s]""") in description || description == "") return ""
     val parts = description.split("; ")
     var max = 0.0
+    var count = 0
     var word = ""
     for (part in parts) {
         val pair = part.split(" ")
-        if (pair[1].toDouble() > max) {
-            max = pair[1].toDouble()
+        if (pair[1].toDouble() > max) {              // Идщем самый дорогой товар
+            max = pair[1].toDouble()                 // и запоминаем его имя
             word = pair[0]
         }
     }
-    return word
+    for (part in parts) {
+        val pair = part.split(" ")                   // Проверяем, только ли один товар с максимальной ценой
+        if (pair[1].toDouble() == max) count++
+    }
+    return if (count == 1)                           // Если один,
+        word                                         // то выводим его имя
+    else                                             // Если таких товаров несколько,
+        "Any good with price $max"                   // то выводим строку
 }
 
 /**

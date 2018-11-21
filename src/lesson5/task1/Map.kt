@@ -296,6 +296,7 @@ fun whoAreInBoth(a: List<String>, b: List<String>): List<String> = a.intersect(b
 fun canBuildFrom(chars: List<Char>, word: String): Boolean {
     val w = word.toLowerCase().toList()
     val c = chars.toString().toLowerCase().toList()
+    if (word == " " && ' ' !in chars) return false
     for (i in 0 until w.size) {
         if (w[i] !in c) return false
     }
