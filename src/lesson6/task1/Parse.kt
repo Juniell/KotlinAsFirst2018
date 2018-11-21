@@ -171,8 +171,8 @@ else Regex("""-|\s|\(|\)""").replace(phone, "")
  */
 fun bestLongJump(jumps: String): Int {
     if (Regex("""[^0-9%\-\s]""") in jumps) return -1
-    var str = Regex("""%|-|\s""").replace(jumps, ".")
-    str = Regex("""\.+\.+?""").replace(str, " ").trim()
+    var str = Regex("""[%\-]""").replace(jumps, " ")
+    str = Regex(""" + +?""").replace(str, " ").trim()
     if (str == "") return -1
     val parts = str.split(Regex("""[ .]"""))
     var max = parts[0].toInt()
