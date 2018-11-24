@@ -2,6 +2,7 @@
 
 package lesson5.task1
 
+import org.omg.CORBA.ARG_IN.value
 import kotlin.math.max
 import kotlin.math.min
 
@@ -101,10 +102,10 @@ fun mergePhoneBooks(mapA: Map<String, String>, mapB: Map<String, String>): Map<S
     val result = mutableMapOf<String, String>()
     for ((name, phone) in mapA) {
         when {
-            name in mapA && name in mapB && phone != mapB[name] -> {
+            name in mapB && phone != mapB[name] -> {
                 result[name] = phone + ", " + mapB[name]
             }
-            name in mapA && name !in mapB -> result[name] = phone
+            name !in mapB -> result[name] = phone
 
         }
     }
@@ -131,8 +132,8 @@ fun buildGrades(grades: Map<String, Int>): Map<Int, List<String>> {
     for ((name, grade) in grades)
         result.getOrPut(grade) { mutableListOf() } += name
     for ((grade, _) in result)
-        result[grade] = result[grade]!!.sortedDescending().toMutableList()
-    return result.toMap()
+        result[grade]!!.sortByDescending { it }
+    return result
 }
 
 /**
@@ -195,7 +196,10 @@ fun findCheapestStuff(stuff: Map<String, Pair<String, Double>>, kind: String): S
             result = name
         }
     }
-return if (min != Double.POSITIVE_INFINITY) result else null
+    return if (min != Double.POSITIVE_INFINITY)
+        result
+    else
+        null
 }
 
 /**
@@ -294,12 +298,10 @@ fun whoAreInBoth(a: List<String>, b: List<String>): List<String> = a.intersect(b
  *   canBuildFrom(listOf('a', 'b', 'o'), "baobab") -> true
  */
 fun canBuildFrom(chars: List<Char>, word: String): Boolean {
-    val w = word.toLowerCase().toList()
-    val c = chars.toString().toLowerCase().toList()
-    if (word == " " && ' ' !in chars) return false
-    for (i in 0 until w.size) {
-        if (w[i] !in c) return false
-    }
+    val w = word.toLowerCase().toSet()
+    val c = chars.map { it.toLowerCase() }.toSet()
+    for (letter in w)
+        if (letter !in c) return false
     return chars.isEmpty() && word == "" || chars.isNotEmpty()
 }
 
@@ -316,18 +318,14 @@ fun canBuildFrom(chars: List<Char>, word: String): Boolean {
  *   extractRepeats(listOf("a", "b", "a")) -> mapOf("a" to 2)
  */
 fun extractRepeats(list: List<String>): Map<String, Int> {
-    var result = mapOf<String, Int>()
-    var count = 0
-    for (char in list) {
-        for (symbol in list) {
-            if (symbol == char) {
-                count++
-            }
-        }
-        if (count > 1) result += (char to count)
-        count = 0
+    val res = mutableMapOf<String, Int>()
+    for (symbol in list) {
+        if (symbol in res)
+            res[symbol] = res[symbol]!! + 1
+        else
+            res[symbol] = 1
     }
-    return result
+    return res.filterValues { it > 1 }
 }
 
 /**
@@ -401,31 +399,33 @@ fun findSumOfTwo(list: List<Int>, number: Int): Pair<Int, Int> {
  *   ) -> emptySet()
  */
 fun bagPacking(treasures: Map<String, Pair<Int, Int>>, capacity: Int): Set<String> {
-    val res = mutableSetOf<String>()                           // Вводим map, в который будем вносить результат
-    var weight = capacity
-    var size = capacity
-    var name = ""
-    var ratio = 0                                              // Переменная, в которую записывается отношение цена/вес
-    val map = treasures.toMutableMap()
-    while (map.isNotEmpty()) {
-        for ((item, property) in treasures) {                  // Сразу убираем предметы, вес которых больше
-            if (property.first > size)                         // вместимости рюкзака
-                map -= item
-        }
-        if (map.isEmpty())                                     // Если после предыдущего цикла map с предметам стал
-            return res                                         // пустым, то сразувыводим результат
-        for ((item, property) in map) {                        // Из оставшихся предметов ищем самый
-            if (property.second / property.first > ratio) {    // ценный (рублей/грамм)
-                weight = property.first                        // и запоминаем его характеристики и имя
-                name = item
-                ratio = property.second / property.first
-            }
-        }
-        res.add(name)                                          // Добавляем имя предмета в результат
-        map -= name
-        size -= weight
-        weight = size
-        ratio = 0
+    val res = mutableSetOf<String>()
+    val names = treasures.keys.toList()                                 // список с названиями предметов
+    val properties: MutableList<Pair<Int, Int>> = mutableListOf()       // список с парой (вес to цена) для каждого предмета
+    val array = Array(treasures.size + 1) { Array(capacity + 1) { 0 } } // заполнемый нами двумерный массив (таблица)
+    for (i in 0 until treasures.size)                                   // заполняем список с характеристикой предметов
+        properties.add(treasures[names[i]]!!.first to treasures[names[i]]!!.second)
+    for (j in 1..treasures.size) {
+        // Определяем, входит ли предмет в искомый набор. Если предмет вмещается, то ищем максимальное значение между
+        // стоимостью рюкзака вместе с этим предметом и рюкзака без него и записываем в таблицу.
+        // Если предмет не вмещается, то заносим в талицу прыдущее значение
+        // Максимальная возможная стоимость находится в нижней правой ячейке таблицы array[j][k]
+        for (k in 1..capacity)
+            if (properties[j - 1].first <= k)
+                array[j][k] = max(array[j - 1][k], array[j - 1][k - properties[j - 1].first] + properties[j - 1].second)
+            else
+                array[j][k] = array[j - 1][k]
     }
+    fun recovery(j: Int, k: Int) {              // Рекурсивная функция для восстановления набора предметов, входящих в рюкзак
+        if (array[j][k] == 0)                                     // Пропускаем ячейки, равные 0
+            return
+        if (array[j - 1][k] == array[j][k])                       // Если соседние элементы равны,
+            recovery(j - 1, k)                                    // то предмет не входит в итоговый набор.
+        else {
+            res.add(names[j - 1])                                 // Иначе добавляем предмет в итоговый набор
+            recovery(j - 1, k - properties[j - 1].first)          // и рассматриваем следующий предмет
+        }
+    }
+    recovery(treasures.size, capacity)          // Используем функцию для нашего двумерного массива
     return res
 }

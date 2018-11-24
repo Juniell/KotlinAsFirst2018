@@ -77,7 +77,7 @@ fun dateStrToDigit(str: String): String {
     if (parts.size != 3) return ""
     val days: Int
     val month: Int
-    val yaer: Int
+    val year: Int
     try {
         days = parts[0].toInt()
         month = when (parts[1]) {
@@ -95,12 +95,12 @@ fun dateStrToDigit(str: String): String {
             "декабря" -> 12
             else -> return ""
         }
-        yaer = parts[2].toInt()
-        if (days > daysInMonth(month, yaer)) return ""
+        year = parts[2].toInt()
+        if (days > daysInMonth(month, year)) return ""
     } catch (e: NumberFormatException) {
         return ""
     }
-    return String.format("%02d.%02d.%d", days, month, yaer)
+    return String.format("%02d.%02d.%d", days, month, year)
 }
 
 /**
@@ -238,19 +238,14 @@ fun plusMinus(expression: String): Int {
 fun firstDuplicateIndex(str: String): Int {
     val parts = str.toLowerCase().split(" ")
     var ind = 0
-    var res = -1
-    for (i in 0 until parts.size - 1) {
-        if (i > 0) ind += parts[i - 1].length + 1
-        for (k in i + 1 until parts.size) {
-            if (parts[i] == parts[k]) {
-                res = ind
-                break
-            }
-        }
+    for (i in 0 until parts.size - 2) {
+        if (i > 0)
+            ind += parts[i - 1].length + 1
+        if (parts[i] == parts[i + 1])
+            return ind
     }
-    return res
+    return -1
 }
-// Либо локальне
 
 /**
  * Сложная
@@ -264,26 +259,19 @@ fun firstDuplicateIndex(str: String): Int {
  * Все цены должны быть больше либо равны нуля.
  */
 fun mostExpensive(description: String): String {
-    if (Regex("""[^а-яёА-ЯЁ;.\d\s]""") in description || description == "") return ""
+    if (Regex("""[^а-яёА-ЯЁa-zA-Z;.\d\s]""") in description || description == "") return ""
     val parts = description.split("; ")
     var max = 0.0
-    var count = 0
     var word = ""
     for (part in parts) {
         val pair = part.split(" ")
-        if (pair[1].toDouble() > max) {              // Идщем самый дорогой товар
+        if (parts.size == 1) return pair[0]
+        if (pair[1].toDouble() > max) {              // Ищем самый дорогой товар
             max = pair[1].toDouble()                 // и запоминаем его имя
             word = pair[0]
         }
     }
-    for (part in parts) {
-        val pair = part.split(" ")                   // Проверяем, только ли один товар с максимальной ценой
-        if (pair[1].toDouble() == max) count++
-    }
-    return if (count == 1)                           // Если один,
-        word                                         // то выводим его имя
-    else                                             // Если таких товаров несколько,
-        "Any good with price $max"                   // то выводим строку
+    return word
 }
 
 /**
