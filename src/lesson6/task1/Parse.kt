@@ -238,11 +238,10 @@ fun plusMinus(expression: String): Int {
 fun firstDuplicateIndex(str: String): Int {
     val parts = str.toLowerCase().split(" ")
     var ind = 0
-    for (i in 0 until parts.size - 1) {
-        if (i > 0)
-            ind += parts[i - 1].length + 1
-        if (parts[i] == parts[i + 1])
+    for (i in 1 until parts.size) {
+        if (parts[i] == parts[i - 1])
             return ind
+        ind += parts[i - 1].length + 1
     }
     return -1
 }
@@ -356,4 +355,57 @@ fun fromRoman(roman: String): Int {
  * IllegalArgumentException должен бросаться даже если ошибочная команда не была достигнута в ходе выполнения.
  *
  */
-fun computeDeviceCells(cells: Int, commands: String, limit: Int): List<Int> = TODO()
+fun computeDeviceCells(cells: Int, commands: String, limit: Int): List<Int> {
+    if (Regex("""[^+\-><\[\]\s]""") in commands)      // Проверяем, есть ли в строке с командами недопустимые символы
+        throw IllegalArgumentException()              // Бросаем исключение, если есть
+    if (Regex("""\[""").findAll(commands, 0).toList().size != Regex("""]""").findAll(commands, 0).toList().size)
+        throw IllegalArgumentException()              // Проверяем парность скобок в строке с командами
+    val list = mutableListOf<Int>()
+    var ind: Int = cells / 2
+    var count = 0                                     // Счётчик команд, чтобы не превзойти limit
+    var k = 0                                         // Индекс команды из commands
+    var open: Int                                     // Счётчик для открывающих скобок
+    var end: Int                                      // Счётчик для закрывающих скобок
+    for (i in 0 until cells)                          // Заполняем список нулями
+        list.add(0)
+    while (k < commands.length && count != limit) {
+        if (ind >= cells || ind < 0)                  // Проверка на то, чтобы не было перехода за пределы списка
+            throw IllegalStateException()
+        when (commands[k]) {
+            '>' -> ind++
+            '<' -> ind--
+            '+' -> list[ind] += 1
+            '-' -> list[ind] -= 1
+            ' ' -> k = k
+            '[' -> {                                   // Если встречается открывающая скобка и значение под датчиком
+                if (list[ind] == 0) {                  // равно нулю, то датчик должен перейти на команду, которая идёт
+                    open = 1                           // после соответсвующей закрывающей скобкой.
+                    end = 0                            // open = 1, потому что мы уже учли одну открывающую скобку
+                    while (open != end) {              // open и end будут равны только тогда, когда мы найдём
+                        k += 1                         // закрывающую скобку, соответствующую нашей
+                        if (commands[k] == '[')        // поэтому мы считаем кол-во скобок и идём дальше по списку команд
+                            open += 1
+                        if (commands[k] == ']')
+                            end += 1
+                    }
+                }
+            }
+            ']' -> {                                   // Аналогично с закрывающей скобкой
+                if (list[ind] != 0) {                  // Только идём назад по списку команд и в этот раз end = 1
+                    open = 0
+                    end = 1
+                    while (open != end) {
+                        k -= 1
+                        if (commands[k] == '[')
+                            open += 1
+                        if (commands[k] == ']')
+                            end += 1
+                    }
+                }
+            }
+        }
+        k++
+        count++
+    }
+    return list
+}

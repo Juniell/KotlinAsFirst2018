@@ -300,9 +300,7 @@ fun whoAreInBoth(a: List<String>, b: List<String>): List<String> = a.intersect(b
 fun canBuildFrom(chars: List<Char>, word: String): Boolean {
     val w = word.toLowerCase().toSet()
     val c = chars.map { it.toLowerCase() }.toSet()
-    for (letter in w)
-        if (letter !in c) return false
-    return chars.isEmpty() && word == "" || chars.isNotEmpty()
+    return chars.isEmpty() && word == "" || chars.isNotEmpty() && c.intersect(w) == w
 }
 
 /**
@@ -319,12 +317,8 @@ fun canBuildFrom(chars: List<Char>, word: String): Boolean {
  */
 fun extractRepeats(list: List<String>): Map<String, Int> {
     val res = mutableMapOf<String, Int>()
-    for (symbol in list) {
-        if (symbol in res)
-            res[symbol] = res[symbol]!! + 1
-        else
-            res[symbol] = 1
-    }
+    for (symbol in list)
+        res[symbol] = res.getOrDefault(symbol, 0) + 1
     return res.filterValues { it > 1 }
 }
 
