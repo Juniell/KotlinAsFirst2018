@@ -157,7 +157,7 @@ fun dateDigitToStr(digital: String): String {
  * При неверном формате вернуть пустую строку
  */
 fun flattenPhoneNumber(phone: String): String = if (Regex("""[^0-9()+\s\-]|(?<!^)\+""") in phone) ""
-else Regex("""-|\s|\(|\)""").replace(phone, "")
+else Regex("""-|\s|\(|\)|^\+$""").replace(phone, "")
 
 /**
  * Средняя
@@ -238,7 +238,7 @@ fun plusMinus(expression: String): Int {
 fun firstDuplicateIndex(str: String): Int {
     val parts = str.toLowerCase().split(" ")
     var ind = 0
-    for (i in 0 until parts.size - 2) {
+    for (i in 0 until parts.size - 1) {
         if (i > 0)
             ind += parts[i - 1].length + 1
         if (parts[i] == parts[i + 1])
