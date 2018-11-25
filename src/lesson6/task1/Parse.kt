@@ -369,8 +369,6 @@ fun computeDeviceCells(cells: Int, commands: String, limit: Int): List<Int> {
     for (i in 0 until cells)                          // Заполняем список нулями
         list.add(0)
     while (k < commands.length && count != limit) {
-        if (ind >= cells || ind < 0)                  // Проверка на то, чтобы не было перехода за пределы списка
-            throw IllegalStateException()
         when (commands[k]) {
             '>' -> ind++
             '<' -> ind--
@@ -406,6 +404,8 @@ fun computeDeviceCells(cells: Int, commands: String, limit: Int): List<Int> {
         }
         k++
         count++
+        if (ind >= cells || ind < 0)                  // Проверка на то, чтобы не было перехода за пределы списка
+            throw IllegalStateException()
     }
     return list
 }
