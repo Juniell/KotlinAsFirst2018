@@ -364,8 +364,14 @@ fun computeDeviceCells(cells: Int, commands: String, limit: Int): List<Int> {
     var ind: Int = cells / 2
     var count = 0                                     // Счётчик команд, чтобы не превзойти limit
     var k = 0                                         // Индекс команды из commands
-    var open: Int                                     // Счётчик для открывающих скобок
-    var end: Int                                      // Счётчик для закрывающих скобок
+    var open = 0                                      // Счётчик для открывающих скобок
+    var end = 0                                       // Счётчик для закрывающих скобок
+    for (com in commands) {                           // Проверяем, не идёт ли закрывающая скобка перед открывающей
+        if (com == '[') open += 1
+        if (com == ']') end += 1
+        if (end == 1 && open == 0)                    // Если идёт, то бросаем исключение
+            throw IllegalArgumentException()
+    }
     for (i in 0 until cells)                          // Заполняем список нулями
         list.add(0)
     while (k < commands.length && count != limit) {
