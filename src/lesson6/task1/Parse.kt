@@ -258,7 +258,7 @@ fun firstDuplicateIndex(str: String): Int {
  * Все цены должны быть больше либо равны нуля.
  */
 fun mostExpensive(description: String): String {
-    if (Regex("""[^а-яёА-ЯЁa-zA-Z;.\d\s]""") in description || description == "") return ""
+    if (description.matches(Regex(""".*+ +(\d)+""")) || description == "") return ""
     val parts = description.split("; ")
     var max = 0.0
     var word = ""

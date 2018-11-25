@@ -329,7 +329,7 @@ fun extractRepeats(list: List<String>): Map<String, Int> {
  * (два слова являются анаграммами, если одно можно составить из второго)
  *
  * Например:
- *   hasAnagrams(listOf("тор", "свет", "рот")) -> true
+ *   hasAnagrams(listOf("тор", "свет", "рот")) -> true 
  */
 fun letter(a: String): List<Char> = a.toList()
 
