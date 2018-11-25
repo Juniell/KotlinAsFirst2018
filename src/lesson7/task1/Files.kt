@@ -3,6 +3,7 @@
 package lesson7.task1
 
 import java.io.File
+import java.lang.StringBuilder
 
 /**
  * Пример
@@ -32,8 +33,7 @@ fun alignFile(inputName: String, lineLength: Int, outputName: String) {
                 if (word.length + currentLineLength >= lineLength) {
                     outputStream.newLine()
                     currentLineLength = 0
-                }
-                else {
+                } else {
                     outputStream.write(" ")
                     currentLineLength++
                 }
@@ -54,7 +54,22 @@ fun alignFile(inputName: String, lineLength: Int, outputName: String) {
  * Регистр букв игнорировать, то есть буквы е и Е считать одинаковыми.
  *
  */
-fun countSubstrings(inputName: String, substrings: List<String>): Map<String, Int> = TODO()
+fun countSubstrings(inputName: String, substrings: List<String>): Map<String, Int> {
+    val map = mutableMapOf<String, Int>()
+    for (line in File(inputName).readLines()) { // Проходим по всем строкам файла
+        for (element in substrings) {        // Проходим по всем элементам в списке
+            if (element !in map)             // Каждый новый элемент
+                map[element] = 0             // Добавляем в map
+            val el = element.toLowerCase()   // Переводим искомый элемент в нижний регистр
+            if (el in line.toLowerCase()) {  // И если такой элемент есть в строке (тоже переведённой в нижний регистр)
+                val count = map[element]!! + // Считаем,сколько раз уже входил и прибавляем
+                        Regex(el).findAll(line.toLowerCase(), 0).toList().size   // новое число вхождений
+                map[element] = count         // Изменяем
+            }
+        }
+    }
+    return map
+}
 
 
 /**
@@ -71,7 +86,25 @@ fun countSubstrings(inputName: String, substrings: List<String>): Map<String, In
  *
  */
 fun sibilants(inputName: String, outputName: String) {
-    TODO()
+    val list = listOf("ЖЫ", "Жы", "жЫ", "жы", "ЖЯ", "Жя", "жЯ", "жя", "ЖЮ", "Жю", "жЮ", "жю",   // Создём список
+            "ЧЫ", "Чы", "чЫ", "чы", "ЧЯ", "Чя", "чЯ", "чя", "ЧЮ", "Чю", "чЮ", "чю",     // со всеми возможными
+            "ШЫ", "Шы", "шЫ", "шы", "ШЯ", "Шя", "шЯ", "шя", "ШЮ", "Шю", "шЮ", "шю",     // ошибками
+            "ЩЫ", "Щы", "щЫ", "щы", "ЩЯ", "Щя", "щЯ", "щя", "ЩЮ", "Щю", "щЮ", "щю")     // с учётом регистра
+    val list2 = listOf("ЖИ", "Жи", "жИ", "жи", "ЖА", "Жа", "жА", "жа", "ЖУ", "Жу", "жУ", "жу",  // Создаём список
+            "ЧИ", "Чи", "чИ", "чи", "ЧА", "Ча", "чА", "ча", "ЧУ", "Чу", "чУ", "чу",     // с исрпавлениями
+            "ШИ", "Ши", "шИ", "ши", "ША", "Ша", "шА", "ша", "ШУ", "Шу", "шУ", "шу",     // для всех ошибок
+            "ЩИ", "Щи", "щИ", "щи", "ЩА", "Ща", "щА", "ща", "ЩУ", "Щу", "щУ", "щу")     // с учётом регистра
+    val outputStream = File(outputName).bufferedWriter()
+    for (line in File(inputName).readLines()) {     // Проходим по всем строкам входного файла
+        var str = line                              // Создаём строку, которую будем изменять
+        for (i in 0 until list.size) {
+            if (Regex(list[i]) in str)              // Если ошибка встречается в этой строке,
+                str = Regex(list[i]).replace(str, list2[i])     // то заменяюем в ней ошибку на соответствующее исправление
+        }
+        outputStream.write(str)                     // Записываем полностью исправленную строку в выходной файл
+        outputStream.newLine()                      // Переходим на новую строку
+    }
+    outputStream.close()
 }
 
 /**
@@ -92,7 +125,19 @@ fun sibilants(inputName: String, outputName: String) {
  *
  */
 fun centerFile(inputName: String, outputName: String) {
-    TODO()
+    var maxLength = 0
+    val outputStream = File(outputName).bufferedWriter()
+    for (line in File(inputName).readLines())
+        if (line.trim().length > maxLength)                 // Находим размер самой длинной строки
+            maxLength = line.trim().length                  // (без учёта пробелов в начале и конце строк)
+    for (line in File(inputName).readLines()) {
+        var str = line.trim()                               // Убираем пробелы в начале и конце строки (п.1)
+        val i = (maxLength - str.length) / 2 + str.length   // Находим длину строки после добавления пробелов
+        str = str.padStart(i)                               // Добавляем проблелы, чтобы размер строки соответсовал i
+        outputStream.write(str)
+        outputStream.newLine()
+    }
+    outputStream.close()
 }
 
 /**
@@ -126,6 +171,17 @@ fun alignFileByWidth(inputName: String, outputName: String) {
     TODO()
 }
 
+// Проверить входной файл на п.1 и найти размер самой длинной строки, убирая при этом лишние пробелы между словами
+// Проходя по строкам в файле:
+// 1. Убирать лишние пробелы между словами      Regex(""" + +?""").replace(str, " ")
+// 2. Разбивать строку на слова по пробелам   b = (...).split(" ")
+// 3. Считать количество слов n = b.size /b.length
+// 4. Посчитать нужное количество пробелов между каждым словом как (maxLenght - line.size) / n
+// 5. Собрать строку?? через for (element in .split)? str += element.padStart(кол-во пробелов + длина слова)
+// проблема в том, что не получется ровное количество пробелом между словами
+// считать отдельно для каждого слова???
+// Regex(""" """).replace(str, "").length - длина строки без пробелов
+
 /**
  * Средняя
  *
@@ -144,7 +200,35 @@ fun alignFileByWidth(inputName: String, outputName: String) {
  * Ключи в ассоциативном массиве должны быть в нижнем регистре.
  *
  */
-fun top20Words(inputName: String): Map<String, Int> = TODO()
+fun top20Words(inputName: String): Map<String, Int> {
+    var map = mutableMapOf<String, MutableList<Int>>()
+    val result = mutableMapOf<String, Int>()
+    for (line in File(inputName).readLines()) {
+        if (line != "") {                                                      // Не рассматриваем пустые строки
+            val str = Regex("""[^а-яА-ЯёЁa-zA-Z]""").replace(line, " ").trim()    // Заменяем лишние символы на пробелы
+            val words = Regex(""" +""").replace(str, " ").split(" ")        // Разбиваем на слова по пробелам
+            for (word in words) {                                              // Добавляем в map новые слова или
+                map.getOrPut(word.toLowerCase()) { mutableListOf() } += 1      // добавляем значения в уже имеющиеся
+            }
+        }
+    }
+    if (map.isEmpty()) return result        // Если в исходном тексте не было слов, то возвращаем пустой result
+    var max = 0
+    var name = ""
+    map = (map - "").toMutableMap()         // Убираемм из map переносы строк и пустые строки, если они есть
+    for (i in 1..20) {
+        for ((element, list) in map) {      // Находим слово с максимальной длиной строки
+            if (list.size > max) {          // (т.е. максимальным вхождением в текст)
+                max = list.size             // Запоминаем слово и число его вхождений
+                name = element
+            }
+        }
+        result[name] = max                  // Переносим полученные значения в result
+        max = 0
+        map = (map - name).toMutableMap()
+    }
+    return result
+}
 
 /**
  * Средняя
@@ -182,8 +266,29 @@ fun top20Words(inputName: String): Map<String, Int> = TODO()
  * Обратите внимание: данная функция не имеет возвращаемого значения
  */
 fun transliterate(inputName: String, dictionary: Map<Char, String>, outputName: String) {
-    TODO()
+    val outputStream = File(outputName).bufferedWriter()
+    for (line in File(inputName).readLines()) {
+        var str = line.toLowerCase()                            // Переводим строку внижний регистр
+        for ((element, value) in dictionary) {                  // Ищем все элементы из словаря
+            if (Regex("""${element.toLowerCase()}""") in str)   // Если элемент из словаря встречается, заменяем его
+                str = Regex("""${element.toLowerCase()}""").replace(str, value.toLowerCase())
+            if (Regex("""^${element.toLowerCase()}""") in line.toLowerCase()    // Если исходная строка начиналась
+                    && line[0] == line[0].toUpperCase()) {      // с элемента из словаря и первая буква была заглавной,
+                str = str[0].toUpperCase() + str.substring(1)   // делаем первый символ из изменнённой строки заглавным
+            }
+        }
+        outputStream.write(str)
+        outputStream.newLine()
+    }
+    outputStream.close()
 }
+// фор по всем строкам
+// фор по всем (element,value) в dictionary
+// через регекс заменять str = Regex(element).replace(line, "$value")
+// !!!РАЗОБРАТЬСЯ С УСЛОВИЕМ РЕГИСТРА!!!
+// записывать в новый файл
+// не забывать переносить на новую строку
+// закрыть запись
 
 /**
  * Средняя
@@ -210,8 +315,36 @@ fun transliterate(inputName: String, dictionary: Map<Char, String>, outputName: 
  * Обратите внимание: данная функция не имеет возвращаемого значения
  */
 fun chooseLongestChaoticWord(inputName: String, outputName: String) {
-    TODO()
+    val outputStream = File(outputName).bufferedWriter()
+    val list = mutableListOf<String>()                  // Список, куда будем заносить слова с разными буквами
+    var max = 0
+    val res = StringBuilder()                           // Строка, в которую будем добавлять итоговые слова
+    loop@ for (line in File(inputName).readLines()) {   // Ставим метку и проходим по всем строкам входного файла
+        val symbols = mutableSetOf<Char>()              // Мно-во, в котором будут храниться буквы слова
+        for (char in line) {                            // Рассматриваем все буквы слова
+            if (char.toLowerCase() !in symbols) {       // Если в мно-ве такой буквы нет,
+                symbols.add(char.toLowerCase())         // то добавляем её в мно-во
+            } else                                      // Если же она есть
+                continue@loop                           // то возвращаемся по метке и рассматриваем следующее слово
+        }
+        list.add(line)          // Слова, которые не попадали на else, т.е. имеющие разные буквы, заносим в список
+        if (line.length >= max) max = line.length       // и ищем максимальную длину среди них
+    }
+    for (word in list) {                                // Проходим по всему списку из слов с разными буквами
+        if (word.length == max) res.append("$word, ")   // и записываем в строку те, что имеют длину max
+    }                                                   // Вносим в выходной файл строку из подходящих слов,
+    outputStream.write(res.toString().substring(0, res.toString().length - 2))  // убирая заптую и пробел в конце
+    outputStream.close()
 }
+// for (line in File(inputName).readLines)
+// одна строка - одно слово
+// проходим по char в каждом слове
+// проверяем, есть ли символы в сете, если нет, то добавляем, если да, то break
+// если не было повторений (то есть прошёл весь цикл for(char in line)), то запоминаем его и его длину
+// далее сравниваем его длину с последующими словами, которые прошли for, и ищем самое длинное или то, которое совпадает
+// ИЛИ можно сначала найти самое длинное слово, в котором нет повторений, занося при этом слова, в которых нет повторений,
+// в список, а слова с повторениями игнорируя
+// а потом среди них искать слова с такой же длиной (то есть максимальной) - чтобы учесть случаи, когда слов несколько
 
 /**
  * Сложная
@@ -243,21 +376,77 @@ Suspendisse ~~et elit in enim tempus iaculis~~.
  *
  * Соответствующий выходной файл:
 <html>
-    <body>
-        <p>
-            Lorem ipsum <i>dolor sit amet</i>, consectetur <b>adipiscing</b> elit.
-            Vestibulum lobortis. <s>Est vehicula rutrum <i>suscipit</i></s>, ipsum <s>lib</s>ero <i>placerat <b>tortor</b></i>.
-        </p>
-        <p>
-            Suspendisse <s>et elit in enim tempus iaculis</s>.
-        </p>
-    </body>
+<body>
+<p>
+Lorem ipsum <i>dolor sit amet</i>, consectetur <b>adipiscing</b> elit.
+Vestibulum lobortis. <s>Est vehicula rutrum <i>suscipit</i></s>, ipsum <s>lib</s>ero <i>placerat <b>tortor</b></i>.
+</p>
+<p>
+Suspendisse <s>et elit in enim tempus iaculis</s>.
+</p>
+</body>
 </html>
  *
  * (Отступы и переносы строк в примере добавлены для наглядности, при решении задачи их реализовывать не обязательно)
  */
 fun markdownToHtmlSimple(inputName: String, outputName: String) {
-    TODO()
+    val outputStream = File(outputName).bufferedWriter()
+    var count = 0       // Счётчик для пустых строк, чтобы отслеживать <p> и </p>
+    var count1 = 0      // Счётчик для полужирного текста, чтобы отслеживать <b> и </b>
+    var count2 = 0      // Счётчик для курсива, чтобы отслеживать <i> и </i>
+    var count3 = 0      // Счётчик для зачёркнутого текста, чтобы отслеживать <s> и </s>
+    if (File(inputName).readLines().isNotEmpty()) {         // Проверяем файл на непустоту
+        outputStream.write("<html>")                        // Добавляем теги начала
+        outputStream.newLine()
+        outputStream.write("<body>")
+        loop@ for (line in File(inputName).readLines()) {   // Проходим по всем строкам
+            outputStream.newLine()
+            if (line.isEmpty() && count % 2 == 0) {         // Если строка пустая и встречается чётное кол-во раз,
+                outputStream.write("p")                     // то добавляем тег, открывающий новый абзац,
+                count++                                     // прибавляем к счётчику
+                outputStream.newLine()
+                continue@loop                               // и рассматриваем следующую строку
+            }
+            if (line.isEmpty() && count % 2 == 1) {         // Если строка пустая и встречается нечётное кол-во раз,
+                outputStream.write("/p")                    // то добавляем тег, закрывающий абзац,
+                count++                                     // прибавляем к счётчику
+                outputStream.newLine()
+                continue@loop                               // и рассматриваем следующую строку
+            }
+            while (Regex("""[*~]""") in line) {     // Если же строка не была пустой и в ней содержатся * или ~,
+                if (Regex("""\*\*\*""") in line) Regex("""\*\*\*""").replace(line, "<b><i>")
+                if (Regex("""\*\*""") in line && count1 % 2 == 0) {     // то заменяем символы
+                    Regex("""\*\*""").replaceFirst(line, "<b>")         // на соответствующие им теги
+                    count1++                                            // в разметке HTML,
+                }                                                       // прибавляя к счётчикам
+                if (Regex("""\*\*""") in line && count1 % 2 == 1) {
+                    Regex("""\*\*""").replaceFirst(line, "</b>")
+                    count1++
+                }
+                if (Regex("""\*""") in line && count2 % 2 == 0) {
+                    Regex("""\*""").replaceFirst(line, "<i>")
+                    count2++
+                }
+                if (Regex("""\*""") in line && count2 % 2 == 1) {
+                    Regex("""\*""").replaceFirst(line, "</i>")
+                    count2++
+                }
+                if (Regex("""~+~""") in line && count3 % 2 == 0) {
+                    Regex("""~+~""").replaceFirst(line, "<s>")
+                    count3++
+                }
+                if (Regex("""~+~""") in line && count3 % 2 == 1) {
+                    Regex("""~+~""").replaceFirst(line, "</s>")
+                    count3++
+                }
+            }
+            outputStream.write(line)        // Записываем в выходной файл получившуюся строку
+        }
+        outputStream.write("</body>")       // Добавляем теги конца файла
+        outputStream.newLine()
+        outputStream.write("</html>")
+    }
+    outputStream.close()
 }
 
 /**
@@ -294,61 +483,61 @@ fun markdownToHtmlSimple(inputName: String, outputName: String) {
  *
  * Пример входного файла:
 ///////////////////////////////начало файла/////////////////////////////////////////////////////////////////////////////
-* Утка по-пекински
-    * Утка
-    * Соус
-* Салат Оливье
-    1. Мясо
-        * Или колбаса
-    2. Майонез
-    3. Картофель
-    4. Что-то там ещё
-* Помидоры
-* Фрукты
-    1. Бананы
-    23. Яблоки
-        1. Красные
-        2. Зелёные
+ * Утка по-пекински
+ * Утка
+ * Соус
+ * Салат Оливье
+1. Мясо
+ * Или колбаса
+2. Майонез
+3. Картофель
+4. Что-то там ещё
+ * Помидоры
+ * Фрукты
+1. Бананы
+23. Яблоки
+1. Красные
+2. Зелёные
 ///////////////////////////////конец файла//////////////////////////////////////////////////////////////////////////////
  *
  *
  * Соответствующий выходной файл:
 ///////////////////////////////начало файла/////////////////////////////////////////////////////////////////////////////
 <html>
-  <body>
-    <ul>
-      <li>
-        Утка по-пекински
-        <ul>
-          <li>Утка</li>
-          <li>Соус</li>
-        </ul>
-      </li>
-      <li>
-        Салат Оливье
-        <ol>
-          <li>Мясо
-            <ul>
-              <li>
-                  Или колбаса
-              </li>
-            </ul>
-          </li>
-          <li>Майонез</li>
-          <li>Картофель</li>
-          <li>Что-то там ещё</li>
-        </ol>
-      </li>
-      <li>Помидоры</li>
-      <li>
-        Яблоки
-        <ol>
-          <li>Красные</li>
-          <li>Зелёные</li>
-        </ol>
-      </li>
-    </ul>
-  </body>
+<body>
+<ul>
+<li>
+Утка по-пекински
+<ul>
+<li>Утка</li>
+<li>Соус</li>
+</ul>
+</li>
+<li>
+Салат Оливье
+<ol>
+<li>Мясо
+<ul>
+<li>
+Или колбаса
+</li>
+</ul>
+</li>
+<li>Майонез</li>
+<li>Картофель</li>
+<li>Что-то там ещё</li>
+</ol>
+</li>
+<li>Помидоры</li>
+<li>
+Яблоки
+<ol>
+<li>Красные</li>
+<li>Зелёные</li>
+</ol>
+</li>
+</ul>
+</body>
 </html>
 ///////////////////////////////конец файла//////////////////////////////////////////////////////////////////////////////
  * (Отступы и переносы строк в примере добавлены для наглядности, при решении задачи их реализовывать не обязательно)
@@ -375,23 +564,23 @@ fun markdownToHtml(inputName: String, outputName: String) {
  * Вывести в выходной файл процесс умножения столбиком числа lhv (> 0) на число rhv (> 0).
  *
  * Пример (для lhv == 19935, rhv == 111):
-   19935
-*    111
+19935
+ *    111
 --------
-   19935
+19935
 + 19935
 +19935
 --------
- 2212785
+2212785
  * Используемые пробелы, отступы и дефисы должны в точности соответствовать примеру.
  * Нули в множителе обрабатывать так же, как и остальные цифры:
-  235
-*  10
+235
+ *  10
 -----
-    0
+0
 +235
 -----
- 2350
+2350
  *
  */
 fun printMultiplicationProcess(lhv: Int, rhv: Int, outputName: String) {
@@ -405,16 +594,16 @@ fun printMultiplicationProcess(lhv: Int, rhv: Int, outputName: String) {
  * Вывести в выходной файл процесс деления столбиком числа lhv (> 0) на число rhv (> 0).
  *
  * Пример (для lhv == 19935, rhv == 22):
-  19935 | 22
- -198     906
- ----
-    13
-    -0
-    --
-    135
-   -132
-   ----
-      3
+19935 | 22
+-198     906
+----
+13
+-0
+--
+135
+-132
+----
+3
 
  * Используемые пробелы, отступы и дефисы должны в точности соответствовать примеру.
  *
