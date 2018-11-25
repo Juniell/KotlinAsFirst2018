@@ -168,19 +168,37 @@ fun centerFile(inputName: String, outputName: String) {
  * 8) Если входной файл удовлетворяет требованиям 1-7, то он должен быть в точности идентичен выходному файлу
  */
 fun alignFileByWidth(inputName: String, outputName: String) {
-    TODO()
+    val outputStream = File(outputName).bufferedWriter()
+    var max = 0
+    var space = 0
+    var sum = 0
+    for (line in File(inputName).readLines()) {
+        var str = line.trim()
+        str = Regex(""" +""").replace(str, " ")
+        if (str.length > max)
+            max = str.length
+    }
+    for (line in File(inputName).readLines()) {
+        var str = line.trim()
+        str = Regex(""" +""").replace(str, " ")
+        val words = str.split(" ")
+        val size = words.size
+        var str2 = words[0]
+        if (max == str.length) str2 = str
+        if (size != 1 && max != str.length) {
+            for (i in 1 until size) {
+                sum += space
+                space = (max - Regex(""" """).replace(str, "").length - sum) / (size - i)
+                str2 += words[i].padStart(space + words[i].length)
+            }
+        }
+        sum = 0
+        space = 0
+        outputStream.write(str2)
+        outputStream.newLine()
+    }
+    outputStream.close()
 }
-
-// Проверить входной файл на п.1 и найти размер самой длинной строки, убирая при этом лишние пробелы между словами
-// Проходя по строкам в файле:
-// 1. Убирать лишние пробелы между словами      Regex(""" + +?""").replace(str, " ")
-// 2. Разбивать строку на слова по пробелам   b = (...).split(" ")
-// 3. Считать количество слов n = b.size /b.length
-// 4. Посчитать нужное количество пробелов между каждым словом как (maxLenght - line.size) / n
-// 5. Собрать строку?? через for (element in .split)? str += element.padStart(кол-во пробелов + длина слова)
-// проблема в том, что не получется ровное количество пробелом между словами
-// считать отдельно для каждого слова???
-// Regex(""" """).replace(str, "").length - длина строки без пробелов
 
 /**
  * Средняя
@@ -282,13 +300,6 @@ fun transliterate(inputName: String, dictionary: Map<Char, String>, outputName: 
     }
     outputStream.close()
 }
-// фор по всем строкам
-// фор по всем (element,value) в dictionary
-// через регекс заменять str = Regex(element).replace(line, "$value")
-// !!!РАЗОБРАТЬСЯ С УСЛОВИЕМ РЕГИСТРА!!!
-// записывать в новый файл
-// не забывать переносить на новую строку
-// закрыть запись
 
 /**
  * Средняя
@@ -330,21 +341,17 @@ fun chooseLongestChaoticWord(inputName: String, outputName: String) {
         list.add(line)          // Слова, которые не попадали на else, т.е. имеющие разные буквы, заносим в список
         if (line.length >= max) max = line.length       // и ищем максимальную длину среди них
     }
-    for (word in list) {                                // Проходим по всему списку из слов с разными буквами
-        if (word.length == max) res.append("$word, ")   // и записываем в строку те, что имеют длину max
-    }                                                   // Вносим в выходной файл строку из подходящих слов,
-    outputStream.write(res.toString().substring(0, res.toString().length - 2))  // убирая заптую и пробел в конце
-    outputStream.close()
+    if (list.isNotEmpty()) {                                // Если в файле было хотя было одно слово, то
+        for (word in list) {                                // проходим по всему списку из слов с разными буквами
+            if (word.length == max) res.append("$word, ")   // и записываем в строку те, что имеют длину max
+        }                                                   // Вносим в выходной файл строку из подходящих слов,
+        outputStream.write(res.toString().substring(0, res.toString().length - 2))  // убирая заптую и пробел в конце
+        outputStream.close()
+    } else {                                                // Если же список слов остался пустым,
+        outputStream.write("")                              // то заносим в выходной файл пустую строку
+        outputStream.close()
+    }
 }
-// for (line in File(inputName).readLines)
-// одна строка - одно слово
-// проходим по char в каждом слове
-// проверяем, есть ли символы в сете, если нет, то добавляем, если да, то break
-// если не было повторений (то есть прошёл весь цикл for(char in line)), то запоминаем его и его длину
-// далее сравниваем его длину с последующими словами, которые прошли for, и ищем самое длинное или то, которое совпадает
-// ИЛИ можно сначала найти самое длинное слово, в котором нет повторений, занося при этом слова, в которых нет повторений,
-// в список, а слова с повторениями игнорируя
-// а потом среди них искать слова с такой же длиной (то есть максимальной) - чтобы учесть случаи, когда слов несколько
 
 /**
  * Сложная
@@ -399,50 +406,57 @@ fun markdownToHtmlSimple(inputName: String, outputName: String) {
         outputStream.write("<html>")                        // Добавляем теги начала
         outputStream.newLine()
         outputStream.write("<body>")
+        outputStream.newLine()
+        outputStream.write("<p>")
         loop@ for (line in File(inputName).readLines()) {   // Проходим по всем строкам
             outputStream.newLine()
             if (line.isEmpty() && count % 2 == 0) {         // Если строка пустая и встречается чётное кол-во раз,
-                outputStream.write("p")                     // то добавляем тег, открывающий новый абзац,
+                outputStream.write("</p>")
+                outputStream.write("<p>")                   // то добавляем тег, открывающий новый абзац,
                 count++                                     // прибавляем к счётчику
                 outputStream.newLine()
                 continue@loop                               // и рассматриваем следующую строку
             }
             if (line.isEmpty() && count % 2 == 1) {         // Если строка пустая и встречается нечётное кол-во раз,
-                outputStream.write("/p")                    // то добавляем тег, закрывающий абзац,
+                outputStream.write("</p>")                  // то добавляем тег, закрывающий абзац,
                 count++                                     // прибавляем к счётчику
                 outputStream.newLine()
                 continue@loop                               // и рассматриваем следующую строку
             }
-            while (Regex("""[*~]""") in line) {     // Если же строка не была пустой и в ней содержатся * или ~,
-                if (Regex("""\*\*\*""") in line) Regex("""\*\*\*""").replace(line, "<b><i>")
-                if (Regex("""\*\*""") in line && count1 % 2 == 0) {     // то заменяем символы
-                    Regex("""\*\*""").replaceFirst(line, "<b>")         // на соответствующие им теги
+            var str = line
+            while (Regex("""[*~]""") in str) {     // Если же строка не была пустой и в ней содержатся * или ~,
+                if (Regex("""\*\*\*""") in str)
+                    str = Regex("""\*\*\*""").replace(str, "</b></i>")
+                if (Regex("""\*\*""") in str && count1 % 2 == 0) {     // то заменяем символы
+                    str = Regex("""\*\*""").replaceFirst(str, "<b>")         // на соответствующие им теги
                     count1++                                            // в разметке HTML,
                 }                                                       // прибавляя к счётчикам
-                if (Regex("""\*\*""") in line && count1 % 2 == 1) {
-                    Regex("""\*\*""").replaceFirst(line, "</b>")
+                if (Regex("""\*\*""") in str && count1 % 2 == 1) {
+                    str = Regex("""\*\*""").replaceFirst(str, "</b>")
                     count1++
                 }
-                if (Regex("""\*""") in line && count2 % 2 == 0) {
-                    Regex("""\*""").replaceFirst(line, "<i>")
+                if (Regex("""\*""") in str && count2 % 2 == 0) {
+                    str = Regex("""\*""").replaceFirst(str, "<i>")
                     count2++
                 }
-                if (Regex("""\*""") in line && count2 % 2 == 1) {
-                    Regex("""\*""").replaceFirst(line, "</i>")
+                if (Regex("""\*""") in str && count2 % 2 == 1) {
+                    str = Regex("""\*""").replaceFirst(str, "</i>")
                     count2++
                 }
-                if (Regex("""~+~""") in line && count3 % 2 == 0) {
-                    Regex("""~+~""").replaceFirst(line, "<s>")
+                if (Regex("""~~""") in str && count3 % 2 == 0) {
+                    str = Regex("""~~""").replaceFirst(str, "<s>")
                     count3++
                 }
-                if (Regex("""~+~""") in line && count3 % 2 == 1) {
-                    Regex("""~+~""").replaceFirst(line, "</s>")
+                if (Regex("""~~""") in str && count3 % 2 == 1) {
+                    str = Regex("""~~""").replaceFirst(str, "</s>")
                     count3++
                 }
             }
-            outputStream.write(line)        // Записываем в выходной файл получившуюся строку
+            outputStream.write(str)         // Записываем в выходной файл получившуюся строку
         }
-        outputStream.write("</body>")       // Добавляем теги конца файла
+        outputStream.write("</p>")          // Добавляем теги конца файла
+        outputStream.newLine()
+        outputStream.write("</body>")
         outputStream.newLine()
         outputStream.write("</html>")
     }
