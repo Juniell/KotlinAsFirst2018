@@ -68,18 +68,17 @@ class Tests {
     @Test
     @Tag("Normal")
     fun bestLongJump() {
-        assertEquals(717, bestLongJump("706 % - 717 - 703"))
-        assertEquals(-1, bestLongJump("% - - % -"))
+        assertEquals(2147483647, bestLongJump("% % - % - - 2119978924 2147483647 0  - - 2147483647 1 2147483647 -  % 1053572372 918301567   1612177877  - 2068653311 % 1258741204  % 1797475789 0 223647324   1    -  761597837   - - 674274099 - -   - 2147483647 2147483647 1333942147 0   2058023708    -    % 2147483647  - -  -  1089074903 -"))
+        assertEquals(-1, bestLongJump("-"))
         assertEquals(754, bestLongJump("700 717 707 % 754"))
         assertEquals(-1, bestLongJump("700 + 700"))
-
     }
 
     @Test
     @Tag("Hard")
     fun bestHighJump() {
         assertEquals(226, bestHighJump("226 +"))
-        assertEquals(-1, bestHighJump("???"))
+        assertEquals(-1, bestHighJump("226 +%- -300 +"))
         assertEquals(230, bestHighJump("220 + 224 %+ 228 %- 230 + 232 %%- 234 %"))
     }
 
@@ -90,7 +89,7 @@ class Tests {
         assertEquals(4, plusMinus("2 + 2"))
         assertEquals(6, plusMinus("2 + 31 - 40 + 13"))
         assertEquals(-1, plusMinus("0 - 1"))
-        assertThrows(IllegalArgumentException::class.java) { plusMinus("+2") }
+        assertThrows(IllegalArgumentException::class.java) { plusMinus("") }
         assertThrows(IllegalArgumentException::class.java) { plusMinus("+ 4") }
         assertThrows(IllegalArgumentException::class.java) { plusMinus("4 - -2") }
         assertThrows(IllegalArgumentException::class.java) { plusMinus("44 - - 12") }
@@ -100,7 +99,7 @@ class Tests {
     @Test
     @Tag("Hard")
     fun firstDuplicateIndex() {
-        assertEquals(-1, firstDuplicateIndex("Привет"))
+        assertEquals(18, firstDuplicateIndex("c o | 1 P ` X N < ( ("))
         assertEquals(9, firstDuplicateIndex("Он пошёл в в школу"))
         assertEquals(40, firstDuplicateIndex("Яблоко упало на ветку с ветки оно упало на на землю"))
         assertEquals(9, firstDuplicateIndex("Мы пошли прямо Прямо располагался магазин"))
@@ -141,6 +140,6 @@ class Tests {
                 computeDeviceCells(11, "<<<<< + >>>>>>>>>> --[<-] >+[>+] >++[--< <[<] >+[>+] >++]", 256))
         assertThrows(IllegalArgumentException::class.java) { computeDeviceCells(10, "===", 3) }
         assertThrows(IllegalArgumentException::class.java) { computeDeviceCells(10, "+>+>[+>", 3) }
-        assertThrows(IllegalStateException::class.java) { computeDeviceCells(20, ">>>>>>>>>>>>>", 12) }
+        assertThrows(IllegalStateException::class.java) { computeDeviceCells(2, ">", 1000) }
     }
 }

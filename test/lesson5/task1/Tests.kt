@@ -161,10 +161,6 @@ class Tests {
     @Tag("Normal")
     fun averageStockPrice() {
         assertEquals(
-                mapOf<String, Double>(),
-                averageStockPrice(listOf())
-        )
-        assertEquals(
                 mapOf("MSFT" to 100.0, "NFLX" to 40.0),
                 averageStockPrice(listOf("MSFT" to 100.0, "NFLX" to 40.0))
         )
@@ -188,10 +184,10 @@ class Tests {
                 )
         )
         assertEquals(
-                "Мария",
+                "Лимон",
                 findCheapestStuff(
-                        mapOf("Мария" to ("печенье" to 20.0), "Орео" to ("печенье" to 100.0)),
-                        "печенье"
+                        mapOf("Мария" to ("" to 0.006984230795321733), "Лимон" to ("" to 0.000001), "Орео" to ("" to 100.0)),
+                        ""
                 )
         )
     }
@@ -201,14 +197,28 @@ class Tests {
     fun propagateHandshakes() {
         assertEquals(
                 mapOf(
-                        "Marat" to setOf("Mikhail", "Sveta"),
-                        "Sveta" to setOf("Mikhail"),
-                        "Mikhail" to setOf()
+                        "Alena" to setOf("Vika", "Sasha", "Vova", "Igor", "Tema", "Artur", "Ania"),
+                        "Sasha" to setOf("Alena", "Vova", "Vika", "Igor", "Tema", "Artur", "Ania"),
+                        "Tania" to setOf("Arina", "Vika", "Igor", "Alena", "Tema", "Artur", "Ania", "Sasha", "Vova"),
+                        "Vika" to setOf("Igor", "Tema", "Artur", "Ania", "Sasha", "Vova", "Artur", "Alena"),
+                        "Igor" to setOf("Vika", "Tema", "Artur", "Ania", "Sasha", "Vova", "Alena"),
+                        "Arina" to setOf("Tania", "Vika", "Igor", "Tema", "Artur", "Ania", "Sasha", "Vova", "Alena"),
+                        "Artur" to setOf("Ania"),
+                        "Vova" to setOf(),
+                        "Tema" to setOf(),
+                        "Ania" to setOf()
+
+
                 ),
                 propagateHandshakes(
                         mapOf(
-                                "Marat" to setOf("Sveta"),
-                                "Sveta" to setOf("Mikhail")
+                                "Alena" to setOf("Vika", "Sasha", "Vova"),
+                                "Sasha" to setOf("Alena", "Vova"),
+                                "Tania" to setOf("Arina", "Vika"),
+                                "Vika" to setOf("Igor", "Alena"),
+                                "Igor" to setOf("Vika", "Tema", "Artur"),
+                                "Arina" to setOf("Tania"),
+                                "Artur" to setOf("Ania")
                         )
                 )
         )
@@ -266,6 +276,10 @@ class Tests {
         assertFalse(canBuildFrom(emptyList(), "foo"))
         assertTrue(canBuildFrom(listOf('a', 'b', 'o'), "baobab"))
         assertFalse(canBuildFrom(listOf('a', 'm', 'r'), "Marat"))
+        assertFalse(canBuildFrom(listOf('a', 'b', 'c', '¼', '♣'), " "))
+        assertTrue(canBuildFrom(listOf('a', 'b', ' '), " "))
+        assertTrue(canBuildFrom(listOf('a', 'b', 'o'), ""))
+        assertFalse(canBuildFrom(emptyList(), "baobab"))
     }
 
     @Test
@@ -288,7 +302,6 @@ class Tests {
     @Test
     @Tag("Normal")
     fun hasAnagrams() {
-        assertFalse(hasAnagrams(emptyList()))
         assertTrue(hasAnagrams(listOf("рот", "свет", "тор")))
         assertFalse(hasAnagrams(listOf("рот", "свет", "код", "дверь")))
     }
@@ -301,12 +314,12 @@ class Tests {
                 findSumOfTwo(emptyList(), 1)
         )
         assertEquals(
-                Pair(0, 2),
-                findSumOfTwo(listOf(1, 2, 3), 4)
+                Pair(2, 3),
+                findSumOfTwo(listOf(5, 2, 1, 9, 7, 6), 10)
         )
         assertEquals(
-                Pair(-1, -1),
-                findSumOfTwo(listOf(1, 2, 3), 6)
+                Pair(2, 7),
+                findSumOfTwo(listOf(4, 18, 1, 15, 16, 17, 20, 3, 8), 4)
         )
     }
 
@@ -325,6 +338,16 @@ class Tests {
                 bagPacking(
                         mapOf("Кубок" to (500 to 2000), "Слиток" to (1000 to 5000)),
                         450
+                )
+        )
+        assertEquals(
+                setOf("Колбаса", "Кольцо", "Перчатки", "Помада", "Носки", "Фонарик", "Слиток"),
+                bagPacking(
+                        mapOf("Кубок" to (500 to 2000), "Колбаса" to (200 to 80), "Кольцо" to (5 to 13000), "Сапоги" to (3000 to 8000),
+                                "Перчатки" to (10 to 500), "Помада" to (30 to 1000), "Арбуз" to (5000 to 300), "Кровать" to (20000 to 15000),
+                                "Носки" to (15 to 550), "Фонарик" to (1000 to 2500), "Палатка" to (4000 to 5000), "Банан" to (1000 to 70),
+                                "Еда" to (7000 to 5000), "Слиток" to (1000 to 5000)),
+                        2500
                 )
         )
     }

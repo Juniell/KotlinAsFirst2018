@@ -182,6 +182,15 @@ Basic, Ruby, Swift.
         File("temp.txt").delete()
 
         transliterate(
+                "input/trans_in2.txt",
+                mapOf('L' to "<", 'u' to "s\twBTcug_W", '끋' to "fsS?lD%oCU", '(' to "O.E7sF\">Dn",
+                        '폽' to "]53Kb\tT\"U/", '쒶' to "a0_~IP{qn>", 'B' to "*`s.v+:x^", '7' to "\"%`~c#P28O",
+                        '|' to "t\$v{wc!n(8"), "temp.txt"
+        )
+        assertFileContent("temp.txt", ".tX")
+        File("temp.txt").delete()
+
+        transliterate(
                 "input/trans_in1.txt",
                 mapOf('з' to "zZ", 'р' to "r", 'д' to "d", 'й' to "y", 'М' to "m", 'и' to "YY", '!' to "!!!"),
                 "temp.txt"
@@ -195,6 +204,10 @@ Basic, Ruby, Swift.
     fun chooseLongestChaoticWord() {
         chooseLongestChaoticWord("input/chaotic_in1.txt", "temp.txt")
         assertFileContent("temp.txt", "Карминовый, Некрасивый")
+        File("temp.txt").delete()
+
+        chooseLongestChaoticWord("input/chaotic_in2.txt", "temp.txt")
+        assertFileContent("temp.txt", "")
         File("temp.txt").delete()
     }
 
