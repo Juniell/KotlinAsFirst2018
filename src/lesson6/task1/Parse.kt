@@ -214,9 +214,9 @@ fun bestHighJump(jumps: String): Int {
  * Про нарушении формата входной строки бросить исключение IllegalArgumentException
  */
 fun plusMinus(expression: String): Int {
-    if (Regex("""[^0-9+\-\s]""") in expression || expression.isEmpty() ||
+    if (Regex("""[^0-9+\-\s]""") in expression || expression.isEmpty() || Regex("""\d""") !in expression ||
             Regex("""^\+|^-|(\s+\s+\s+?)|([-+])+\s+(\s+?)+([-+])|\d+[-+]|[-+]+\d|\d+\s+(\s+?)\d""") in expression)
-        throw IllegalArgumentException("java.lang.NumberFormatException: Only signed numbers are allowed")
+        throw IllegalArgumentException()
     val parts = expression.split(" ")
     var result = parts[0].toInt()
     for (i in 1..(parts.size - 2)) {
@@ -370,6 +370,14 @@ fun computeDeviceCells(cells: Int, commands: String, limit: Int): List<Int> {
         if (com == '[') open += 1
         if (com == ']') end += 1
         if (end == 1 && open == 0)                    // Если идёт, то бросаем исключение
+            throw IllegalArgumentException()
+    }
+    open = 0
+    end = 0
+    for (i in commands.length - 1 downTo 0) {
+        if (commands[i] == '[') open += 1
+        if (commands[i] == ']') end += 1
+        if (end == 0 && open == 1)                    // Если идёт, то бросаем исключение
             throw IllegalArgumentException()
     }
     for (i in 0 until cells)                          // Заполняем список нулями
