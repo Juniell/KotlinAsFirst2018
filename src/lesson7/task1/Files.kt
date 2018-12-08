@@ -2,6 +2,7 @@
 
 package lesson7.task1
 
+import kotlinx.html.attributes.stringSetDecode
 import java.io.File
 import java.lang.StringBuilder
 
@@ -56,17 +57,20 @@ fun alignFile(inputName: String, lineLength: Int, outputName: String) {
  */
 fun countSubstrings(inputName: String, substrings: List<String>): Map<String, Int> {
     val map = mutableMapOf<String, Int>()
-    for (line in File(inputName).readLines()) { // Проходим по всем строкам файла
-        for (element in substrings.toSet()) {               // Проходим по всем элементам в списке
-            if (element !in map)             // Каждый новый элемент
-                map[element] = 0             // Добавляем в map
-            val el = element.toLowerCase()   // Переводим искомый элемент в нижний регистр
-            if (el in line.toLowerCase()) {  // И если такой элемент есть в строке (тоже переведённой в нижний регистр)
-                val count = map[element]!! + // Считаем,сколько раз уже входил и прибавляем
-                        Regex(el).findAll(line.toLowerCase(), 0).toList().size   // новое число вхождений
-                map[element] = count         // Изменяем
+    val text = File(inputName).readText().toLowerCase()         // Строка со всем текстом входного файла
+    for (element in substrings.toSet()) {                       // Проходим по всем элементам списка искомых строк
+        var count = 0                                           // Счётчик количества вхождений элемента
+        // Если элемент есть в тексте, мы создаём подстроку, которую будет менять. И пока этот элемент есть в
+        // подстроке, то мы увеличиваем счётчик и уменьшаем подстроку (начальным индексом становится индекс
+        // "стартового" интервала первого найденого элемента)
+        if (element.toLowerCase() in text) {
+            var str = text.substring(0, text.length)
+            while (element.toLowerCase() in str) {
+                count++
+                str = str.substring(Regex(element.toLowerCase()).find(str, 0)!!.range.start + 1, str.length)
             }
         }
+        map[element] = count                                    // Добавляем пару (элемент to кол-во вхождений) в мапу
     }
     return map
 }
@@ -119,18 +123,23 @@ fun sibilants(inputName: String, outputName: String) {
  *
  */
 fun centerFile(inputName: String, outputName: String) {
-    val list = mutableListOf<String>()
     val outputStream = File(outputName).bufferedWriter()
-    for (line in File(inputName).readLines())
-        list.add(line.trim())
-    val maxLength = list.maxBy { it.trim().length }!!.trim().length    // Переменная с максимальной длиной строки в тексте
-    for (i in 0 until list.size) {
-        val size = (maxLength - list[i].length) / 2 + list[i].length   // Находим длину строки после добавления пробелов
-        list[i] = list[i].padStart(size)                               // Добавляем проблелы, чтобы размер строки соответсовал size
-        outputStream.write(list[i])
-        outputStream.newLine()
+    if (File(inputName).readText().isEmpty()) {
+        outputStream.write("")
+        outputStream.close()
+    } else {
+        val list = mutableListOf<String>()
+        for (line in File(inputName).readLines())
+            list.add(line.trim())
+        val maxLength = list.maxBy { it.trim().length }!!.trim().length    // Переменная с максимальной длиной строки в тексте
+        for (i in 0 until list.size) {
+            val size = (maxLength - list[i].length) / 2 + list[i].length   // Находим длину строки после добавления пробелов
+            list[i] = list[i].padStart(size)                               // Добавляем проблелы, чтобы размер строки соответсовал size
+            outputStream.write(list[i])
+            outputStream.newLine()
+        }
+        outputStream.close()
     }
-    outputStream.close()
 }
 
 /**
@@ -210,29 +219,26 @@ fun alignFileByWidth(inputName: String, outputName: String) {
 fun top20Words(inputName: String): Map<String, Int> {
     var map = mutableMapOf<String, MutableList<Int>>()
     val result = mutableMapOf<String, Int>()
-    for (line in File(inputName).readLines()) {
-        if (line != "") {                                                      // Не рассматриваем пустые строки
-            val str = Regex("""[^а-яА-ЯёЁa-zA-Z]""").replace(line, " ").trim()    // Заменяем лишние символы на пробелы
-            val words = Regex(""" +""").replace(str, " ").split(Regex("""\s"""))    // Разбиваем на слова по пробелам
-            for (word in words) {                                              // Добавляем в map новые слова или
-                map.getOrPut(word.toLowerCase()) { mutableListOf() } += 1      // добавляем значения в уже имеющиеся
-            }
-        }
-    }
-    if (map.isEmpty()) return result        // Если в исходном тексте не было слов, то возвращаем пустой result
-    var max = 0
+    var text = File(inputName).readText().toLowerCase()
+    text = Regex("""[^а-яА-ЯёЁa-zA-Z]|\s""").replace(text, " ").trim()       // Заменяем лишние символы на пробелы
+    val words = Regex(""" +""").replace(text, " ").split(Regex("""\s"""))    // Разбиваем на слова по пробелам
+    for (word in words)                                                      // Добавляем в map новые слова или
+        map.getOrPut(word.toLowerCase()) { mutableListOf() } += 1            // увеличиваем длину списка уже имеющихся
+    if (map.isEmpty() || text.isEmpty()) return result   // Если в исходном тексте не было слов, то возвращаем пустой result
+    var max = -1
     var name = ""
-    map = (map - "").toMutableMap()         // Убираемм из map переносы строк и пустые строки, если они есть
     for (i in 1..20) {
-        for ((element, list) in map) {      // Находим слово с максимальной длиной строки
-            if (list.size > max) {          // (т.е. максимальным вхождением в текст)
-                max = list.size             // Запоминаем слово и число его вхождений
-                name = element
+        if (map.isNotEmpty()) {
+            for ((element, list) in map) {      // Находим слово с максимальной длиной списка
+                if (list.size > max) {          // (т.е. максимальным вхождением в текст)
+                    max = list.size             // Запоминаем слово и число его вхождений
+                    name = element
+                }
             }
+            result[name] = max                  // Переносим полученные значения в result
+            max = 0
+            map = (map - name).toMutableMap()
         }
-        result[name] = max                  // Переносим полученные значения в result
-        max = 0
-        map = (map - name).toMutableMap()
     }
     return result
 }
@@ -352,7 +358,7 @@ fun chooseLongestChaoticWord(inputName: String, outputName: String) {
  * - ~~зачёркнутый текст~~ -- зачёркивание
  *
  * Следует вывести в выходной файл этот же текст в формате HTML:
- * - <i>текст в курсивном начертании</i> 
+ * - <i>текст в курсивном начертании</i>
  * - <b>текст в полужирном начертании</b>
  * - <s>зачёркнутый текст</s>
  *
@@ -410,10 +416,10 @@ fun markdownToHtmlSimple(inputName: String, outputName: String) {
                 continue@loop                               // и рассматриваем следующую строку
             }
             var str = line
-            while (Regex("""[*~]""") in str) {     // Если же строка не была пустой и в ней содержатся * или ~,
+            while (Regex("""\*|~~""") in str) {     // Если же строка не была пустой, то пока в ней содержатся * или ~,
                 if (Regex("""\*\*\*""") in str)
                     str = Regex("""\*\*\*""").replace(str, "</b></i>")
-                if (Regex("""\*\*""") in str && count1 % 2 == 0) {     // то заменяем символы
+                if (Regex("""\*\*""") in str && count1 % 2 == 0) {     // заменяем символы
                     str = Regex("""\*\*""").replaceFirst(str, "<b>")   // на соответствующие им теги
                     count1++                                           // в разметке HTML,
                 }                                                      // прибавляя к счётчикам
