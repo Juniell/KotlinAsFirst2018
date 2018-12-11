@@ -2,7 +2,6 @@
 
 package lesson7.task1
 
-import kotlinx.html.attributes.stringSetDecode
 import java.io.File
 import java.lang.StringBuilder
 
@@ -60,15 +59,13 @@ fun countSubstrings(inputName: String, substrings: List<String>): Map<String, In
     val text = File(inputName).readText().toLowerCase()         // Строка со всем текстом входного файла
     for (element in substrings.toSet()) {                       // Проходим по всем элементам списка искомых строк
         var count = 0                                           // Счётчик количества вхождений элемента
-        // Если элемент есть в тексте, мы создаём подстроку, которую будет менять. И пока этот элемент есть в
-        // подстроке, то мы увеличиваем счётчик и уменьшаем подстроку (начальным индексом становится индекс
-        // "стартового" интервала первого найденого элемента)
-        if (element.toLowerCase() in text) {
-            var str = text.substring(0, text.length)
-            while (element.toLowerCase() in str) {
-                count++
-                str = str.substring(Regex(element.toLowerCase()).find(str, 0)!!.range.start + 1, str.length)
-            }
+        val lowered = element.toLowerCase()                     // Переводим элемент в нижний регистр
+        var ind = 0                                             // Индекс, от которого мы будем искать новое вхождение
+        var match = Regex(lowered).find(text, ind)              // Найденное вхождение
+        while (match != null) {                                 // Пока элемнет есть в тексте,
+            count++                                             // увеличиваем счётчик,
+            ind = match.range.start + 1   // изменяем индекс поиска на индекс начала интервала первого найденого элемента
+            match = Regex(lowered).find(text, ind)              // и ищем следующее вхождение уже с новым ind
         }
         map[element] = count                                    // Добавляем пару (элемент to кол-во вхождений) в мапу
     }
@@ -91,16 +88,17 @@ fun countSubstrings(inputName: String, substrings: List<String>): Map<String, In
  */
 fun sibilants(inputName: String, outputName: String) {
     val fixes = mapOf('Ы' to 'И', 'ы' to 'и', 'Я' to 'А', 'я' to 'а', 'Ю' to 'У', 'ю' to 'у')   // Мапа исправлений
-    val letters = setOf('Ж', 'ж', 'Ч', 'ч', 'Ш', 'ш', 'Щ', 'щ')     // Множество возможных согласных
+    val letters = setOf('Ж', 'ж', 'Ч', 'ч', 'Ш', 'ш', 'Щ', 'щ')  // Множество возможных согласных
     val outputStream = File(outputName).bufferedWriter()
-    for (line in File(inputName).readLines()) {                // Проходим по всем строкам входного файла
-        var str = line                                         // Создаём строку, которую будем изменять
-        for (i in 0 until str.length - 1) {
-            if (str[i] in letters && str[i + 1] in fixes)      // Если подряд идёт согласная из мно-ва и нужная гласная
-                str = str.substring(0, i + 1) + fixes[str[i + 1]] + str.substring(i + 2, str.length) // Заменяем
+    for (line in File(inputName).readLines()) {                  // Проходим по всем строкам входного файла
+        val str = line.toMutableList()                           // Переводим строку, которую будем изменять, в список
+        for (i in 0 until str.size - 1) {
+            if (str[i] in letters && str[i + 1] in fixes) {      // Если подряд идёт согласная из мно-ва и нужная гласная
+                str[i + 1] = fixes[str[i + 1]]!!.toChar()        // Заменяем нужный символ на соответствующее ему исправление
+            }
         }
-        outputStream.write(str)                     // Записываем полностью исправленную строку в выходной файл
-        outputStream.newLine()                      // Переходим на новую строку
+        outputStream.write(str.joinToString(separator = ""))     // Записываем исправленную строку, преобразуя в нужный формат
+        outputStream.newLine()                                   // Переходим на новую строку
     }
     outputStream.close()
 }
@@ -124,22 +122,21 @@ fun sibilants(inputName: String, outputName: String) {
  */
 fun centerFile(inputName: String, outputName: String) {
     val outputStream = File(outputName).bufferedWriter()
-    if (File(inputName).readText().isEmpty()) {
-        outputStream.write("")
-        outputStream.close()
+    val list = mutableListOf<String>()
+    for (line in File(inputName).readLines())       // Записываем строки входного файла в список
+        list.add(line.trim())
+    if (list.isEmpty()) {                           // Если входной файл оказался пустым,
+        outputStream.close()                        // то просто закрываем файл
     } else {
-        val list = mutableListOf<String>()
-        for (line in File(inputName).readLines())
-            list.add(line.trim())
-        val maxLength = list.maxBy { it.trim().length }!!.trim().length    // Переменная с максимальной длиной строки в тексте
+        val maxLength = list.maxBy { it.trim().length }!!.length    // Переменная с максимальной длиной строки в тексте
         for (i in 0 until list.size) {
             val size = (maxLength - list[i].length) / 2 + list[i].length   // Находим длину строки после добавления пробелов
             list[i] = list[i].padStart(size)                               // Добавляем проблелы, чтобы размер строки соответсовал size
             outputStream.write(list[i])
             outputStream.newLine()
         }
-        outputStream.close()
     }
+    outputStream.close()
 }
 
 /**
@@ -172,27 +169,32 @@ fun centerFile(inputName: String, outputName: String) {
 fun alignFileByWidth(inputName: String, outputName: String) {
     val outputStream = File(outputName).bufferedWriter()
     var max = 0
-    for (line in File(inputName).readLines()) {             // Находим максимальную длину строки,
-        var str = line.trim()                               // убирая лишние пробелы
-        str = Regex(""" +""").replace(str, " ")
-        if (str.length > max)
+    var space = 0
+    var sum = 0
+    val list = mutableListOf<String>()
+    for (line in File(inputName).readLines()) {                   // Проходим по всем строкам входного файла
+        val str = Regex(""" +""").replace(line.trim(), " ")       // Убираем лишние пробелы из строк,
+        list.add(str)                                             // добавляем их в список
+        if (str.length > max)                                     // и находим максимальную длину строки
             max = str.length
     }
-    for (line in File(inputName).readLines()) {             // Проходим по каждой строке файла
-        var str = line.trim()                               // Убираем в строке лишние пробелы
-        str = Regex(""" +""").replace(str, " ")
-        var str2: String
-        val list = str.split(" ").toMutableList()           // Список слов в строке
-        if (str.length == max || list.size < 2)             // Если длина строки равна максимальной, или в строке меньше 2-х слов,
-            str2 = str                                      // то заносим в файл эту же строку
-        else {                                                              // Иначе
-            while (list.joinToString(separator = "").length != max)         // Пока длина строки не станет равна максимальной,
-                for (i in 0 until list.size - 1)                            // мы проходим по всем словам этой строки,
-                    if (list.joinToString(separator = "").length < max)     // и если длина строки не равна максимальной,
-                        list[i] += " "                                      // то добавляем пробел к слову
-            str2 = list.joinToString(separator = "")
+    for (line in list) {                                  // Проходим по каждой строке из списка
+        var str: String
+        val words = line.split(" ").toMutableList()       // Список слов в строке
+        if (line.length == max || words.size < 2)         // Если длина строки равна максимальной, или в строке меньше 2-х слов,
+            str = line                                    // то заносим в файл эту же строку
+        else {
+            val charLength = Regex(""" """).replace(line, "").length     // Длина строки без пробелов, т.е. кол-во букв в строке
+            str = words[words.size - 1]                                  // добавляем в строку последнее слово
+            for (i in words.size - 2 downTo 0) {
+                sum += space                                             // Сумма уже добавленых пробелов в строку
+                space = (max - charLength - sum) / (i + 1)               // Кол-во пробелов для этого слова
+                str = words[i].padEnd(space + words[i].length) + str     // В начало строки записываем слово, добавляя к нему посчитанное кол-во пробелов
+            }
         }
-        outputStream.write(str2)
+        sum = 0
+        space = 0
+        outputStream.write(str)
         outputStream.newLine()
     }
     outputStream.close()
@@ -217,30 +219,15 @@ fun alignFileByWidth(inputName: String, outputName: String) {
  *
  */
 fun top20Words(inputName: String): Map<String, Int> {
-    var map = mutableMapOf<String, MutableList<Int>>()
+    val map = mutableMapOf<String, Int>()
     val result = mutableMapOf<String, Int>()
     var text = File(inputName).readText().toLowerCase()
     text = Regex("""[^а-яА-ЯёЁa-zA-Z]|\s""").replace(text, " ").trim()       // Заменяем лишние символы на пробелы
     val words = Regex(""" +""").replace(text, " ").split(Regex("""\s"""))    // Разбиваем на слова по пробелам
     for (word in words)                                                      // Добавляем в map новые слова или
-        map.getOrPut(word.toLowerCase()) { mutableListOf() } += 1            // увеличиваем длину списка уже имеющихся
+        map[word.toLowerCase()] = map.getOrDefault(word.toLowerCase(), 0) + 1            // увеличиваем длину списка уже имеющихся
     if (map.isEmpty() || text.isEmpty()) return result   // Если в исходном тексте не было слов, то возвращаем пустой result
-    var max = -1
-    var name = ""
-    for (i in 1..20) {
-        if (map.isNotEmpty()) {
-            for ((element, list) in map) {      // Находим слово с максимальной длиной списка
-                if (list.size > max) {          // (т.е. максимальным вхождением в текст)
-                    max = list.size             // Запоминаем слово и число его вхождений
-                    name = element
-                }
-            }
-            result[name] = max                  // Переносим полученные значения в result
-            max = 0
-            map = (map - name).toMutableMap()
-        }
-    }
-    return result
+    return map.map { it.key to it.value }.sortedByDescending { it.second }.take(20).toMap()
 }
 
 /**
@@ -279,7 +266,7 @@ fun top20Words(inputName: String): Map<String, Int> {
  * Обратите внимание: данная функция не имеет возвращаемого значения
  */
 fun transliterate(inputName: String, dictionary: Map<Char, String>, outputName: String) {
-    val dict: Map<Char, String> = dictionary.map { it.key.toLowerCase() to it.value.toLowerCase() }.toMap()
+    val dict = dictionary.map { it.key.toLowerCase() to it.value.toLowerCase() }.toMap()
     // Тот же самый словарь, только в нижнем регистре
     val outputStream = File(outputName).bufferedWriter()
     // Проходим по каждой строке и каждому символу строки
@@ -329,21 +316,16 @@ fun chooseLongestChaoticWord(inputName: String, outputName: String) {
     val outputStream = File(outputName).bufferedWriter()
     val list = mutableListOf<String>()                  // Список, куда будем заносить слова с разными буквами
     var max = 0
-    val res = StringBuilder()                           // Строка, в которую будем добавлять итоговые слова
     for (line in File(inputName).readLines()) {         // Проходим по всем строкам входного файла
         val char = line.toLowerCase().toSet()           // Множество всех букв слова
-        if (char.size == line.length) {         // Если кол-во символов в мно-ве равно длине слову, то буквы не повторяются,
-            list.add(line)                      // поэтому заносим это слово в список
-            if (line.length >= max) max = line.length  // и ищем максимальную длину среди них
+        if (char.size == line.length) {                 // Если кол-во символов в мно-ве равно длине слову, то буквы не повторяются,
+            list.add(line)                              // поэтому заносим это слово в список
+            if (line.length >= max) max = line.length   // и ищем максимальную длину среди них
         }
     }
-    for (word in list) {                                // Проходим по всему списку из слов с разными буквами
-        if (word.length == max) res.append("$word, ")   // и записываем в строку те, что имеют длину max
-    }                                                   // Вносим в выходной файл строку из подходящих слов,
-    if (list.isNotEmpty())                // Если было хотя бы нужное одно слово, то после него стоят запятая и пробел,
-        outputStream.write(res.toString().substring(0, res.toString().length - 2))  // поэтому убираем их.
-    else                                  // Если же нужных слов не оказалось,
-        outputStream.write("")            // то добавляем пустую строку
+    // Фильтруем слова по длине (она должна быть равна max), переводим в строку, добавляя запятые и пробелы между словами,
+    // и записываем в выходной файл
+    outputStream.write(list.filter { it.length == max }.joinToString(separator = ", "))
     outputStream.close()
 }
 
@@ -390,13 +372,18 @@ Suspendisse <s>et elit in enim tempus iaculis</s>.
  *
  * (Отступы и переносы строк в примере добавлены для наглядности, при решении задачи их реализовывать не обязательно)
  */
+
 fun markdownToHtmlSimple(inputName: String, outputName: String) {
     val outputStream = File(outputName).bufferedWriter()
-    var count = 0       // Счётчик для пустых строк, чтобы отслеживать <p> и </p>
-    var count1 = 0      // Счётчик для полужирного текста, чтобы отслеживать <b> и </b>
-    var count2 = 0      // Счётчик для курсива, чтобы отслеживать <i> и </i>
-    var count3 = 0      // Счётчик для зачёркнутого текста, чтобы отслеживать <s> и </s>
-    if (File(inputName).readLines().isNotEmpty()) {         // Проверяем файл на непустоту
+    val text = File(inputName).readText()
+    // Создаём счётчики, чтобы отслеживать <p> и </p>, <b> и </b>, <i> и </i> и <s> и </s> соответственно
+    var count = 0
+    var count1 = Regex("""\*\*""").findAll(text, 0).toList().size / 2 * 2    // Кол-во ** и ***
+    var count2 = Regex("""[^*]\*|\*[^*]""").findAll(text, 0).toList().size / 2 * 2      // Кол-во * и ***
+    var count3 = Regex("""~~""").findAll(text, 0).toList().size / 2 * 2
+    // Если есть символ без пары (их кол-во нечётное), то при делении на 2 и последующем умножении на 2 нечётность пропадёт,
+    // что позволит нам не изменять последний символ (который не будет иметь пары)
+    if (text.isNotEmpty()) {                                // Проверяем файл на непустоту
         outputStream.write("<html>")                        // Добавляем теги начала
         outputStream.write("<body>")
         outputStream.write("<p>")
@@ -416,32 +403,32 @@ fun markdownToHtmlSimple(inputName: String, outputName: String) {
                 continue@loop                               // и рассматриваем следующую строку
             }
             var str = line
-            while (Regex("""\*|~~""") in str) {     // Если же строка не была пустой, то пока в ней содержатся * или ~,
-                if (Regex("""\*\*\*""") in str)
-                    str = Regex("""\*\*\*""").replace(str, "</b></i>")
-                if (Regex("""\*\*""") in str && count1 % 2 == 0) {     // заменяем символы
-                    str = Regex("""\*\*""").replaceFirst(str, "<b>")   // на соответствующие им теги
-                    count1++                                           // в разметке HTML,
-                }                                                      // прибавляя к счётчикам
-                if (Regex("""\*\*""") in str && count1 % 2 == 1) {
+            while (Regex("""\*|~~""") in str) {     // Если же строка не была пустой, то пока в ней содержатся * или ~.
+                // Если кол-во каких-либо искомых символов было нечётным, то при последнем попадании на этот символ
+                // соответствующий ему count будет равен 0, из-за чего он не заменится
+                if (Regex("""\*\*""") in str && count1 % 2 == 0 && count1 != 0) {     // заменяем символы
+                    str = Regex("""\*\*""").replaceFirst(str, "<b>")                  // на соответствующие им теги
+                    count1--                                                          // в разметке HTML,
+                }                                                                     // уменьшая счётчики
+                if (Regex("""\*\*""") in str && count1 % 2 == 1 && count1 != 0) {
                     str = Regex("""\*\*""").replaceFirst(str, "</b>")
-                    count1++
+                    count1--
                 }
-                if (Regex("""\*""") in str && count2 % 2 == 0) {
+                if (Regex("""\*""") in str && count2 % 2 == 0 && count2 != 0) {
                     str = Regex("""\*""").replaceFirst(str, "<i>")
-                    count2++
+                    count2--
                 }
-                if (Regex("""\*""") in str && count2 % 2 == 1) {
+                if (Regex("""\*""") in str && count2 % 2 == 1 && count2 != 0) {
                     str = Regex("""\*""").replaceFirst(str, "</i>")
-                    count2++
+                    count2--
                 }
-                if (Regex("""~~""") in str && count3 % 2 == 0) {
+                if (Regex("""~~""") in str && count3 % 2 == 0 && count3 != 0) {
                     str = Regex("""~~""").replaceFirst(str, "<s>")
-                    count3++
+                    count3--
                 }
-                if (Regex("""~~""") in str && count3 % 2 == 1) {
+                if (Regex("""~~""") in str && count3 % 2 == 1 && count3 != 0) {
                     str = Regex("""~~""").replaceFirst(str, "</s>")
-                    count3++
+                    count3--
                 }
             }
             outputStream.write(str)         // Записываем в выходной файл получившуюся строку
