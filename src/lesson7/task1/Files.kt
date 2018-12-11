@@ -266,26 +266,7 @@ fun top20Words(inputName: String): Map<String, Int> {
  * Обратите внимание: данная функция не имеет возвращаемого значения
  */
 fun transliterate(inputName: String, dictionary: Map<Char, String>, outputName: String) {
-    val dict = dictionary.map { it.key.toLowerCase() to it.value.toLowerCase() }.toMap()
-    // Тот же самый словарь, только в нижнем регистре
-    val outputStream = File(outputName).bufferedWriter()
-    // Проходим по каждой строке и каждому символу строки
-    // Если такой символ есть в словаре и в строке он в нижнем регистре, то просто добаляем соответсвие из словаря.
-    // Если такой символ есть в словаре и в стркое он в верхнем регистре, то добавляем его, делаю первый символ соответствия заглавным.
-    // Если же такого символы нет в словер, то просто добавляем сам символ
-    for (line in File(inputName).readLines()) {
-        val str = StringBuilder()
-        for (char in line) {
-            when {
-                char.toLowerCase() in dict && char == char.toLowerCase() -> str.append(dict[char.toLowerCase()])
-                char.toLowerCase() in dict && char == char.toUpperCase() -> str.append(dict[char.toLowerCase()]!!.capitalize())
-                else -> str.append(char)
-            }
-        }
-        outputStream.write(str.toString())
-        outputStream.newLine()
-    }
-    outputStream.close()
+    TODO()
 }
 
 /**
