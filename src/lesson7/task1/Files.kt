@@ -266,26 +266,7 @@ fun top20Words(inputName: String): Map<String, Int> {
  * Обратите внимание: данная функция не имеет возвращаемого значения
  */
 fun transliterate(inputName: String, dictionary: Map<Char, String>, outputName: String) {
-    val dict = dictionary.map { it.key.toLowerCase() to it.value.toLowerCase() }.toMap()
-    // Тот же самый словарь, только в нижнем регистре
-    val outputStream = File(outputName).bufferedWriter()
-    // Проходим по каждой строке и каждому символу строки
-    // Если такой символ есть в словаре и в строке он в нижнем регистре, то просто добаляем соответсвие из словаря.
-    // Если такой символ есть в словаре и в стркое он в верхнем регистре, то добавляем его, делаю первый символ соответствия заглавным.
-    // Если же такого символы нет в словер, то просто добавляем сам символ
-    for (line in File(inputName).readLines()) {
-        val str = StringBuilder()
-        for (char in line) {
-            when {
-                char.toLowerCase() in dict && char == char.toLowerCase() -> str.append(dict[char.toLowerCase()])
-                char.toLowerCase() in dict && char == char.toUpperCase() -> str.append(dict[char.toLowerCase()]!!.capitalize())
-                else -> str.append(char)
-            }
-        }
-        outputStream.write(str.toString())
-        outputStream.newLine()
-    }
-    outputStream.close()
+    TODO()
 }
 
 /**
@@ -375,68 +356,75 @@ Suspendisse <s>et elit in enim tempus iaculis</s>.
 
 fun markdownToHtmlSimple(inputName: String, outputName: String) {
     val outputStream = File(outputName).bufferedWriter()
-    val text = File(inputName).readText()
+    val list = mutableListOf<String>()              // Список строк входного файла
     // Создаём счётчики, чтобы отслеживать <p> и </p>, <b> и </b>, <i> и </i> и <s> и </s> соответственно
     var count = 0
-    var count1 = Regex("""[^*]\*\*[^*]|\*\*\*""").findAll(text, 0).toList().size / 2 * 2               // Кол-во ** и ***
-    var count2 = Regex("""[^*]\*[^*]|\*\*\*""").findAll(text, 0).toList().size / 2 * 2      // Кол-во * и ***
-    var count3 = Regex("""~~""").findAll(text, 0).toList().size / 2 * 2
+    var count1 = 0
+    var count2 = 0
+    var count3 = 0
+    for (line in File(inputName).readLines()) {
+        list.add(line)
+        count1 += Regex("""[^*]\*\*[^*]|\*\*\*""").findAll(line, 0).toList().size           // Кол-во ** и ***
+        count2 += Regex("""[^*]\*[^*]|\*\*\*""").findAll(line, 0).toList().size             // Кол-во * и ***
+        count3 += Regex("""~~""").findAll(line, 0).toList().size
+    }
     // Если есть символ без пары (их кол-во нечётное), то при делении на 2 и последующем умножении на 2 нечётность пропадёт,
     // что позволит нам не изменять последний символ (который не будет иметь пары)
-    if (text.isNotEmpty()) {                                // Проверяем файл на непустоту
-        outputStream.write("<html>")                        // Добавляем теги начала
-        outputStream.write("<body>")
-        outputStream.write("<p>")
-        loop@ for (line in File(inputName).readLines()) {   // Проходим по всем строкам
+    count1 = count1 / 2 * 2
+    count2 = count2 / 2 * 2
+    count3 = count3 / 2 * 2
+    outputStream.write("<html>")                        // Добавляем теги начала
+    outputStream.write("<body>")
+    outputStream.write("<p>")
+    loop@ for (line in list) {                          // Проходим по всем строкам
+        outputStream.newLine()
+        if (line.isEmpty() && count % 2 == 0) {         // Если строка пустая и встречается чётное кол-во раз,
+            outputStream.write("</p>")
+            outputStream.write("<p>")                   // то добавляем тег, открывающий новый абзац,
+            count++                                     // прибавляем к счётчику
             outputStream.newLine()
-            if (line.isEmpty() && count % 2 == 0) {         // Если строка пустая и встречается чётное кол-во раз,
-                outputStream.write("</p>")
-                outputStream.write("<p>")                   // то добавляем тег, открывающий новый абзац,
-                count++                                     // прибавляем к счётчику
-                outputStream.newLine()
-                continue@loop                               // и рассматриваем следующую строку
-            }
-            if (line.isEmpty() && count % 2 == 1) {         // Если строка пустая и встречается нечётное кол-во раз,
-                outputStream.write("</p>")                  // то добавляем тег, закрывающий абзац,
-                count++                                     // прибавляем к счётчику
-                outputStream.newLine()
-                continue@loop                               // и рассматриваем следующую строку
-            }
-            var str = line
-            while (Regex("""\*|~~""") in str) {     // Если же строка не была пустой, то пока в ней содержатся * или ~.
-                // Если кол-во каких-либо искомых символов было нечётным, то при последнем попадании на этот символ
-                // соответствующий ему count будет равен 0, из-за чего он не заменится
-                if (Regex("""\*\*""") in str && count1 % 2 == 0 && count1 != 0) {     // заменяем символы
-                    str = Regex("""\*\*""").replaceFirst(str, "<b>")                  // на соответствующие им теги
-                    count1--                                                          // в разметке HTML,
-                }                                                                     // уменьшая счётчики
-                if (Regex("""\*\*""") in str && count1 % 2 == 1 && count1 != 0) {
-                    str = Regex("""\*\*""").replaceFirst(str, "</b>")
-                    count1--
-                }
-                if (Regex("""\*""") in str && count2 % 2 == 0 && count2 != 0) {
-                    str = Regex("""\*""").replaceFirst(str, "<i>")
-                    count2--
-                }
-                if (Regex("""\*""") in str && count2 % 2 == 1 && count2 != 0) {
-                    str = Regex("""\*""").replaceFirst(str, "</i>")
-                    count2--
-                }
-                if (Regex("""~~""") in str && count3 % 2 == 0 && count3 != 0) {
-                    str = Regex("""~~""").replaceFirst(str, "<s>")
-                    count3--
-                }
-                if (Regex("""~~""") in str && count3 % 2 == 1 && count3 != 0) {
-                    str = Regex("""~~""").replaceFirst(str, "</s>")
-                    count3--
-                }
-            }
-            outputStream.write(str)         // Записываем в выходной файл получившуюся строку
+            continue@loop                               // и рассматриваем следующую строку
         }
-        outputStream.write("</p>")          // Добавляем теги конца файла
-        outputStream.write("</body>")
-        outputStream.write("</html>")
+        if (line.isEmpty() && count % 2 == 1) {         // Если строка пустая и встречается нечётное кол-во раз,
+            outputStream.write("</p>")                  // то добавляем тег, закрывающий абзац,
+            count++                                     // прибавляем к счётчику
+            outputStream.newLine()
+            continue@loop                               // и рассматриваем следующую строку
+        }
+        var str = line
+        while (Regex("""\*|~~""") in str) {     // Если же строка не была пустой, то пока в ней содержатся * или ~.
+            // Если кол-во каких-либо искомых символов было нечётным, то при последнем попадании на этот символ
+            // соответствующий ему count будет равен 0, из-за чего он не заменится
+            if (Regex("""\*\*""") in str && count1 % 2 == 0 && count1 != 0) {     // заменяем символы
+                str = Regex("""\*\*""").replaceFirst(str, "<b>")                  // на соответствующие им теги
+                count1--                                                          // в разметке HTML,
+            }                                                                     // уменьшая счётчики
+            if (Regex("""\*\*""") in str && count1 % 2 == 1 && count1 != 0) {
+                str = Regex("""\*\*""").replaceFirst(str, "</b>")
+                count1--
+            }
+            if (Regex("""\*""") in str && count2 % 2 == 0 && count2 != 0) {
+                str = Regex("""\*""").replaceFirst(str, "<i>")
+                count2--
+            }
+            if (Regex("""\*""") in str && count2 % 2 == 1 && count2 != 0) {
+                str = Regex("""\*""").replaceFirst(str, "</i>")
+                count2--
+            }
+            if (Regex("""~~""") in str && count3 % 2 == 0 && count3 != 0) {
+                str = Regex("""~~""").replaceFirst(str, "<s>")
+                count3--
+            }
+            if (Regex("""~~""") in str && count3 % 2 == 1 && count3 != 0) {
+                str = Regex("""~~""").replaceFirst(str, "</s>")
+                count3--
+            }
+        }
+        outputStream.write(str)         // Записываем в выходной файл получившуюся строку
     }
+    outputStream.write("</p>")          // Добавляем теги конца файла
+    outputStream.write("</body>")
+    outputStream.write("</html>")
     outputStream.close()
 }
 
