@@ -378,8 +378,8 @@ fun markdownToHtmlSimple(inputName: String, outputName: String) {
     val text = File(inputName).readText()
     // Создаём счётчики, чтобы отслеживать <p> и </p>, <b> и </b>, <i> и </i> и <s> и </s> соответственно
     var count = 0
-    var count1 = Regex("""\*\*""").findAll(text, 0).toList().size / 2 * 2    // Кол-во ** и ***
-    var count2 = Regex("""[^*]\*|\*[^*]""").findAll(text, 0).toList().size / 2 * 2      // Кол-во * и ***
+    var count1 = Regex("""[^*]\*\*[^*]|\*\*\*""").findAll(text, 0).toList().size / 2 * 2               // Кол-во ** и ***
+    var count2 = Regex("""[^*]\*[^*]|\*\*\*""").findAll(text, 0).toList().size / 2 * 2      // Кол-во * и ***
     var count3 = Regex("""~~""").findAll(text, 0).toList().size / 2 * 2
     // Если есть символ без пары (их кол-во нечётное), то при делении на 2 и последующем умножении на 2 нечётность пропадёт,
     // что позволит нам не изменять последний символ (который не будет иметь пары)
