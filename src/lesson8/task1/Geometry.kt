@@ -98,8 +98,6 @@ data class Segment(val begin: Point, val end: Point) {
 
     override fun hashCode() =
             begin.hashCode() + end.hashCode()
-
-    fun length() = begin.distance(end)      // Функция нахождения длины отрезка
 }
 
 /**
@@ -128,9 +126,11 @@ fun diameter(vararg points: Point): Segment {
  * Построить окружность по её диаметру, заданному двумя точками
  * Центр её должен находиться посередине между точками, а радиус составлять половину расстояния между ними
  */
-fun circleByDiameter(diameter: Segment): Circle =
-        Circle(Point((diameter.begin.x + diameter.end.x) / 2, (diameter.begin.y + diameter.end.y) / 2), diameter.length() / 2)
-// Добавила в класс Segment функцию нахождения длины  - lenght
+fun circleByDiameter(diameter: Segment): Circle {
+    val center = Point((diameter.begin.x + diameter.end.x) / 2, (diameter.begin.y + diameter.end.y) / 2)
+    val rad = maxOf(center.distance(diameter.begin), center.distance(diameter.end))
+    return Circle(center, rad)
+}
 
 /**
  * Прямая, заданная точкой point и углом наклона angle (в радианах) по отношению к оси X.
@@ -278,7 +278,7 @@ fun minContainingCircle(vararg points: Point): Circle {
         }
     var res = circle
     if (count == 0) return res                // Если все точки лежат внутри окружности или на ней, то выводим окружность,
-    else {                                    // иначе ищем по варинату № 1 (по трём точкам)
+    else {                                    // иначе ищем по варинату №1 (по трём точкам)
         var radius = Double.POSITIVE_INFINITY
         for (point1 in points)                                              // рассматриваем все варианты точек
             for (point2 in points)
