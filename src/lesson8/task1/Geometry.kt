@@ -176,14 +176,17 @@ class Line private constructor(val b: Double, val angle: Double) {
  * Построить прямую по отрезку
  */
 fun lineBySegment(s: Segment): Line {
-    val point = Point(s.end.x, s.begin.y)       // Точка, лежащая на оси ОХ, в которую опущен перпендикуляр из s.end
-    val angle = acos(s.begin.distance(point) / s.length())      // Угол, найденный через треугольник (s.begin, s.end, point)
+    var angle = if (s.begin.x == s.end.x) PI / 2 else atan((s.begin.y - s.end.y) / (s.begin.x - s.end.x))
+    // Угол, найденный через треугольник (s.begin, s.end, point)
+    when {                              // "Приводим" угол в нужный диапазон
+        angle < 0 -> angle += PI
+        angle >= PI -> angle -= PI
+    }
     return Line(s.begin, angle)
 }
 
 /**
  * Средняя
- *
  *
  * Построить прямую по двум точкам
  */
