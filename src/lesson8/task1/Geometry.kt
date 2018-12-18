@@ -176,10 +176,7 @@ class Line private constructor(val b: Double, val angle: Double) {
  * Построить прямую по отрезку
  */
 fun lineBySegment(s: Segment): Line {
-    val a = s.begin
-    val b = s.end
-    var angle = if (a.x.toDouble() == b.x.toDouble()) PI / 2 else atan((a.y.toDouble() - b.y.toDouble()) / (a.x.toDouble() - b.x.toDouble()))
-    // Угол, найденный через треугольник (s.begin, s.end, point)
+    var angle = if (s.begin.x == s.end.x) PI / 2 else atan((s.begin.y - s.end.y) / (s.begin.x - s.end.x))
     when {                              // "Приводим" угол в нужный диапазон
         angle < 0 -> angle += PI
         angle >= PI -> angle -= PI
